@@ -1,59 +1,58 @@
 version: '3.8'
 
 services:
-  otserver:
-    image: kaldmor-otserver:latest
-    container_name: kaldmor-otserver
-    build:
-      context: .
-      dockerfile: Dockerfile
-    ports:
-      - '7171:7171'
-      - '7172:7172'
-    volumes:
-      - ./data:/srv/data
-      - ./config.lua:/srv/config.lua
+  db:
+    image: mariadb:10.5
+    container_name: kaldmor_db
+    restart: always
     environment:
-      - TZ=America/Sao_Paulo
-    restart: unless-stopped
-    networks:
-      - otnetwork
-
-  mysql:
-    image: mysql:8.0
-    container_name: kaldmor-mysql
-    ports:
-      - '3306:3306'
+      MYSQL_ROOT_PASSWORD: your_docker_password
+      MYSQL_DATABASE: global
     volumes:
-      - mysql_data:/var/lib/mysql
-    environment:
-      - MYSQL_ROOT_PASSWORD=root`n      - MYSQL_DEFAULT_AUTH=mysql_native_password
-      - MYSQL_DATABASE=otserv
-      - MYSQL_USER=otserv
-      - MYSQL_PASSWORD=otserv
-    restart: unless-stopped
-    networks:
-      - otnetwork
+      - db_data:/var/lib/mysql
+      # Map the database.sql to be automatically imported on first run
+      - ./database.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "3306:3306"
+    command: --net_read_timeout=120 --interactive_timeout=28800 --wait_timeout=28800
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      interval: 5s
+      timeout: 5s
+      retries: 20
 
   phpmyadmin:
-    image: phpmyadmin/phpmyadmin:latest
-    container_name: kaldmor-phpmyadmin
-    ports:
-      - '8080:80'
+    image: phpmyadmin/phpmyadmin
+    container_name: kaldmor_pma
+    restart: always
     environment:
-      - PMA_HOST=mysql
-      - PMA_PORT=3306
-      - PMA_USER=root
-      - PMA_PASSWORD=root
+      PMA_HOST: db
+      PMA_USER: root
+      PMA_PASSWORD: your_docker_password
+    ports:
+      - "8080:80"
     depends_on:
-      - mysql
-    restart: unless-stopped
-    networks:
-      - otnetwork
+      - db
 
-networks:
-  otnetwork:
-    driver: bridge
+  server:
+    build: .
+    container_name: kaldmor_server
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "7171:7171"
+      - "7172:7172"
+      - "7173:7173"
+    volumes:
+      # Mount the data directory so changes apply without rebuild
+      - ./data:/server/data
+      # Mount the config.lua so changes apply without rebuild
+      - ./config.lua:/server/config.lua
+    # Optional wait-for-it pattern, using a simple sleep or built-in wait
+    # The server might crash if it starts before MariaDB is ready,
+    # restart: unless-stopped will re-run it until DB is up.
 
 volumes:
-  mysql_data:
+  db_data:

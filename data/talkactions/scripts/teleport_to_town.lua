@@ -1,9 +1,14 @@
 function onSay(player, words, param)
-	local town = Town(param) or Town(tonumber(param))
-	if town then
-		player:teleportTo(town:getTemplePosition())
-	else
-		player:sendCancelMessage("Town not found.")
+	if not player:getGroup():getAccess() then
+		return true
 	end
+
+	local town = Town(param)
+	if town == nil then
+		player:sendCancelMessage("Town not found.")
+		return false
+	end
+
+	player:teleportTo(town:getTemplePosition())
 	return false
 end

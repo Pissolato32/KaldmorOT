@@ -1,8 +1,12 @@
 function onSay(player, words, param)
+	if not player:getGroup():getAccess() then
+		return true
+	end
+
 	local position = player:getPosition()
 	position:getNextPosition(player:getDirection())
 
-	local tile = Tile(position)
+	local tile = position:getTile()
 	if not tile then
 		player:sendCancelMessage("Object not found.")
 		return false

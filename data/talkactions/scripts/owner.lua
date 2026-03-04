@@ -1,7 +1,15 @@
 function onSay(player, words, param)
+	if not player:getGroup():getAccess() then
+		return true
+	end
+
+	if player:getAccountType() < ACCOUNT_TYPE_GOD then
+		return false
+	end
+
 	local tile = Tile(player:getPosition())
 	local house = tile and tile:getHouse()
-	if not house then
+	if house == nil then
 		player:sendCancelMessage("You are not inside a house.")
 		return false
 	end
@@ -12,7 +20,7 @@ function onSay(player, words, param)
 	end
 
 	local targetPlayer = Player(param)
-	if not targetPlayer then
+	if targetPlayer == nil then
 		player:sendCancelMessage("Player not found.")
 		return false
 	end

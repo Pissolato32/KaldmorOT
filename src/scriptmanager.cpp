@@ -1,5 +1,21 @@
-// Copyright 2023 The Forgotten Server Authors. All rights reserved.
-// Use of this source code is governed by the GPL-2.0 License that can be found in the LICENSE file.
+/**
+ * The Forgotten Server - a free and open-source MMORPG server emulator
+ * Copyright (C) 2017  Mark Samman <mark.samman@gmail.com>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
 
 #include "otpch.h"
 
@@ -7,13 +23,12 @@
 
 #include "actions.h"
 #include "chat.h"
-#include "events.h"
-#include "globalevent.h"
-#include "movement.h"
-#include "script.h"
-#include "spells.h"
 #include "talkaction.h"
+#include "spells.h"
+#include "movement.h"
 #include "weapons.h"
+#include "globalevent.h"
+#include "events.h"
 
 Actions* g_actions = nullptr;
 CreatureEvents* g_creatureEvents = nullptr;
@@ -24,7 +39,6 @@ Spells* g_spells = nullptr;
 TalkActions* g_talkActions = nullptr;
 MoveEvents* g_moveEvents = nullptr;
 Weapons* g_weapons = nullptr;
-Scripts* g_scripts = nullptr;
 
 extern LuaEnvironment g_luaEnvironment;
 
@@ -39,36 +53,15 @@ ScriptingManager::~ScriptingManager()
 	delete g_chat;
 	delete g_creatureEvents;
 	delete g_globalEvents;
-	delete g_scripts;
 }
 
 bool ScriptingManager::loadScriptSystems()
 {
-	// Ensure g_luaEnvironment is properly initialized
-	if (!g_luaEnvironment.getLuaState()) {
-		if (!g_luaEnvironment.initState()) {
-			std::cout << "> ERROR: Failed to initialize Lua environment!" << std::endl;
-			return false;
-		}
-	}
-
 	if (g_luaEnvironment.loadFile("data/global.lua") == -1) {
 		std::cout << "[Warning - ScriptingManager::loadScriptSystems] Can not load data/global.lua" << std::endl;
 	}
 
-	g_scripts = new Scripts();
-	std::cout << ">> Loading lua libs" << std::endl;
-	if (!g_scripts->loadScripts("scripts/lib", true, false)) {
-		std::cout << "> ERROR: Unable to load lua libs!" << std::endl;
-		return false;
-	}
-
 	g_chat = new Chat();
-
-	if (!g_scripts->loadScripts("items", false, false)) {
-		std::cout << "> ERROR: Unable to load items (LUA)!" << std::endl;
-		return false;
-	}
 
 	g_weapons = new Weapons();
 	if (!g_weapons->loadFromXml()) {

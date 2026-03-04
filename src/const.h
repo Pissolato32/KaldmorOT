@@ -1,13 +1,28 @@
-// Copyright 2023 The Forgotten Server Authors. All rights reserved.
-// Use of this source code is governed by the GPL-2.0 License that can be found in the LICENSE file.
+/**
+ * The Forgotten Server - a free and open-source MMORPG server emulator
+ * Copyright (C) 2017  Mark Samman <mark.samman@gmail.com>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
 
-#ifndef FS_CONST_H
-#define FS_CONST_H
+#ifndef FS_CONST_H_0A49B5996F074465BF44B90F4F780E8B
+#define FS_CONST_H_0A49B5996F074465BF44B90F4F780E8B
 
-inline constexpr int32_t NETWORKMESSAGE_MAXSIZE = 24590;
+static constexpr int32_t NETWORKMESSAGE_MAXSIZE = 24590;
 
-enum MagicEffectClasses : uint8_t
-{
+enum MagicEffectClasses : uint8_t {
 	CONST_ME_NONE,
 
 	CONST_ME_DRAWBLOOD = 1,
@@ -79,11 +94,55 @@ enum MagicEffectClasses : uint8_t
 	CONST_ME_BATS = 67,
 	CONST_ME_SMOKE = 68,
 	CONST_ME_INSECTS = 69,
-	CONST_ME_DRAGONHEAD = 70
+    CONST_ME_DRAGONHEAD= 70,
+    CONST_ME_ORCSHAMAN = 71,
+	CONST_ME_ORCSHAMAN_FIRE = 72,
+	CONST_ME_THUNDER = 73,
+	CONST_ME_FERUMBRAS = 74,
+	CONST_ME_CONFETTI_HORIZONTAL = 75,
+	CONST_ME_CONFETTI_VERTICAL = 76,
+	// 77-157 are empty
+	CONST_ME_BLACKSMOKE = 158,
+	// 159-166 are empty
+	CONST_ME_REDSMOKE = 167,
+	CONST_ME_YELLOWSMOKE = 168,
+	CONST_ME_GREENSMOKE = 169,
+	CONST_ME_PURPLESMOKE = 170,
+	CONST_ME_EARLY_THUNDER = 171,
+	CONST_ME_RAGIAZ_BONECAPSULE = 172,
+	CONST_ME_CRITICAL_DAMAGE = 173,
+	// 174 is empty
+	CONST_ME_PLUNGING_FISH = 175,
+
+	CONST_ME_BLUE_ENERGY_SPARK = 176,
+	CONST_ME_ORANGE_ENERGY_SPARK = 177,
+	CONST_ME_GREEN_ENERGY_SPARK = 178,
+	CONST_ME_PINK_ENERGY_SPARK = 179,
+	CONST_ME_WHITE_ENERGY_SPARK = 180,
+	CONST_ME_YELLOW_ENERGY_SPARK = 181,
+	CONST_ME_MAGIC_POWDER = 182,
+	// 183 is empty
+	CONST_ME_PIXIE_EXPLOSION = 184,
+	CONST_ME_PIXIE_COMING = 185,
+	CONST_ME_PIXIE_GOING = 186,
+	// 187 is empty
+	CONST_ME_STORM = 188,
+	CONST_ME_STONE_STORM = 189,
+	// 190 is empty
+	CONST_ME_BLUE_GHOST = 191,
+	// 192 is empty
+	CONST_ME_PINK_VORTEX = 193,
+	CONST_ME_TREASURE_MAP = 194,
+	CONST_ME_PINK_BEAM = 195,
+	CONST_ME_GREEN_FIREWORKS = 196,
+	CONST_ME_ORANGE_FIREWORKS = 197,
+	CONST_ME_PINK_FIREWORKS = 198,
+	CONST_ME_BLUE_FIREWORKS = 199,
+
+	CONST_ME_LAST = CONST_ME_BLUE_FIREWORKS,
 };
 
-enum ShootType_t : uint8_t
-{
+enum ShootType_t : uint8_t {
 	CONST_ANI_NONE,
 
 	CONST_ANI_SPEAR = 1,
@@ -129,12 +188,29 @@ enum ShootType_t : uint8_t
 	CONST_ANI_EXPLOSION = 41,
 	CONST_ANI_CAKE = 42,
 
+    CONST_ANI_TARSALARROW = 44,
+	CONST_ANI_VORTEXBOLT = 45,
+
+	CONST_ANI_PRISMATICBOLT = 48,
+	CONST_ANI_CRYSTALLINEARROW = 49,
+	CONST_ANI_DRILLBOLT = 50,
+	CONST_ANI_ENVENOMEDARROW = 51,
+
+	CONST_ANI_GLOOTHSPEAR = 53,
+	CONST_ANI_SIMPLEARROW = 54,
+
+    CONST_ANI_LEAFSTAR = 56,
+	CONST_ANI_DIAMONDARROW = 57,
+	CONST_ANI_SPECTRALBOLT = 58,
+	CONST_ANI_ROYALSTAR = 59,
+
+	CONST_ANI_LAST = CONST_ANI_ROYALSTAR,
+
 	// for internal use, don't send to client
 	CONST_ANI_WEAPONTYPE = 0xFE, // 254
 };
 
-enum SpeakClasses : uint8_t
-{
+enum SpeakClasses : uint8_t {
 	TALKTYPE_SAY = 1,
 	TALKTYPE_WHISPER = 2,
 	TALKTYPE_YELL = 3,
@@ -147,30 +223,28 @@ enum SpeakClasses : uint8_t
 	TALKTYPE_RVR_ANSWER = 10,
 	TALKTYPE_RVR_CONTINUE = 11,
 	TALKTYPE_BROADCAST = 12,
-	TALKTYPE_CHANNEL_R1 = 13,  // red - #c text
+	TALKTYPE_CHANNEL_R1 = 13, //red - #c text
 	TALKTYPE_PRIVATE_RED = 14, //@name@text
-	TALKTYPE_CHANNEL_O = 15,   //@name@text
-	TALKTYPE_CHANNEL_R2 = 17,  // #d
+	TALKTYPE_CHANNEL_O = 15, //@name@text
+	TALKTYPE_CHANNEL_R2 = 17, //#d
 	TALKTYPE_MONSTER_SAY = 19,
 	TALKTYPE_MONSTER_YELL = 20,
 };
 
-enum MessageClasses : uint8_t
-{
-	MESSAGE_STATUS_CONSOLE_RED = 18,    /*Red message in the console*/
-	MESSAGE_EVENT_ORANGE = 19,          /*Orange message in the console*/
-	MESSAGE_STATUS_CONSOLE_ORANGE = 20, /*Orange message in the console*/
-	MESSAGE_STATUS_WARNING = 21,        /*Red message in game window and in the console*/
-	MESSAGE_EVENT_ADVANCE = 22,         /*White message in game window and in the console*/
-	MESSAGE_EVENT_DEFAULT = 23,         /*White message at the bottom of the game window and in the console*/
-	MESSAGE_STATUS_DEFAULT = 24,        /*White message at the bottom of the game window and in the console*/
-	MESSAGE_INFO_DESCR = 25,            /*Green message in game window and in the console*/
-	MESSAGE_STATUS_SMALL = 26,          /*White message at the bottom of the game window"*/
-	MESSAGE_STATUS_CONSOLE_BLUE = 27,   /*FIXME Blue message in the console*/
+enum MessageClasses : uint8_t {
+	MESSAGE_STATUS_CONSOLE_RED = 18, /*Red message in the console*/
+	MESSAGE_EVENT_ORANGE = 19, /*Orange message in the console*/
+	MESSAGE_STATUS_CONSOLE_ORANGE = 20,  /*Orange message in the console*/
+	MESSAGE_STATUS_WARNING = 21, /*Red message in game window and in the console*/
+	MESSAGE_EVENT_ADVANCE = 22, /*White message in game window and in the console*/
+	MESSAGE_EVENT_DEFAULT = 23, /*White message at the bottom of the game window and in the console*/
+	MESSAGE_STATUS_DEFAULT = 24, /*White message at the bottom of the game window and in the console*/
+	MESSAGE_INFO_DESCR = 25, /*Green message in game window and in the console*/
+	MESSAGE_STATUS_SMALL = 26, /*White message at the bottom of the game window"*/
+	MESSAGE_STATUS_CONSOLE_BLUE = 27, /*FIXME Blue message in the console*/
 };
 
-enum FluidColors_t : uint8_t
-{
+enum FluidColors_t : uint8_t {
 	FLUID_EMPTY,
 	FLUID_BLUE,
 	FLUID_RED,
@@ -179,11 +253,9 @@ enum FluidColors_t : uint8_t
 	FLUID_YELLOW,
 	FLUID_WHITE,
 	FLUID_PURPLE,
-	FLUID_BLACK,
 };
 
-enum FluidTypes_t : uint8_t
-{
+enum FluidTypes_t : uint8_t {
 	FLUID_NONE = FLUID_EMPTY,
 	FLUID_WATER = FLUID_BLUE,
 	FLUID_BLOOD = FLUID_RED,
@@ -192,7 +264,6 @@ enum FluidTypes_t : uint8_t
 	FLUID_LEMONADE = FLUID_YELLOW,
 	FLUID_MILK = FLUID_WHITE,
 	FLUID_MANA = FLUID_PURPLE,
-	FLUID_INK = FLUID_BLACK,
 
 	FLUID_LIFE = FLUID_RED + 8,
 	FLUID_OIL = FLUID_BROWN + 8,
@@ -213,18 +284,40 @@ enum FluidTypes_t : uint8_t
 };
 
 const uint8_t reverseFluidMap[] = {
-    FLUID_EMPTY, FLUID_WATER, FLUID_MANA,  FLUID_BEER,     FLUID_EMPTY,
-    FLUID_BLOOD, FLUID_SLIME, FLUID_EMPTY, FLUID_LEMONADE, FLUID_MILK,
+	FLUID_EMPTY,
+	FLUID_WATER,
+	FLUID_MANA,
+	FLUID_BEER,
+	FLUID_EMPTY,
+	FLUID_BLOOD,
+	FLUID_SLIME,
+	FLUID_EMPTY,
+	FLUID_LEMONADE,
+	FLUID_MILK,
 };
 
 const uint8_t clientToServerFluidMap[] = {
-    FLUID_EMPTY, FLUID_WATER, FLUID_MANA,       FLUID_BEER,        FLUID_MUD,  FLUID_BLOOD,
-    FLUID_SLIME, FLUID_RUM,   FLUID_LEMONADE,   FLUID_MILK,        FLUID_WINE, FLUID_LIFE,
-    FLUID_URINE, FLUID_OIL,   FLUID_FRUITJUICE, FLUID_COCONUTMILK, FLUID_TEA,  FLUID_MEAD,
+	FLUID_EMPTY,
+	FLUID_WATER,
+	FLUID_MANA,
+	FLUID_BEER,
+	FLUID_MUD,
+	FLUID_BLOOD,
+	FLUID_SLIME,
+	FLUID_RUM,
+	FLUID_LEMONADE,
+	FLUID_MILK,
+	FLUID_WINE,
+	FLUID_LIFE,
+	FLUID_URINE,
+	FLUID_OIL,
+	FLUID_FRUITJUICE,
+	FLUID_COCONUTMILK,
+	FLUID_TEA,
+	FLUID_MEAD,
 };
 
-enum ClientFluidTypes_t : uint8_t
-{
+enum ClientFluidTypes_t : uint8_t {
 	CLIENTFLUID_EMPTY = 0,
 	CLIENTFLUID_BLUE = 1,
 	CLIENTFLUID_PURPLE = 2,
@@ -238,46 +331,40 @@ enum ClientFluidTypes_t : uint8_t
 };
 
 const uint8_t fluidMap[] = {
-    CLIENTFLUID_EMPTY, CLIENTFLUID_BLUE,   CLIENTFLUID_RED,   CLIENTFLUID_BROWN_1,
-    CLIENTFLUID_GREEN, CLIENTFLUID_YELLOW, CLIENTFLUID_WHITE, CLIENTFLUID_PURPLE,
+	CLIENTFLUID_EMPTY,
+	CLIENTFLUID_BLUE,
+	CLIENTFLUID_RED,
+	CLIENTFLUID_BROWN_1,
+	CLIENTFLUID_GREEN,
+	CLIENTFLUID_YELLOW,
+	CLIENTFLUID_WHITE,
+	CLIENTFLUID_PURPLE,
 };
 
-enum SquareColor_t : uint8_t
-{
+enum SquareColor_t : uint8_t {
 	SQ_COLOR_BLACK = 0,
 };
 
-enum TextColor_t : uint8_t
-{
-	TEXTCOLOR_BLACK = 0,
+enum TextColor_t : uint8_t {
 	TEXTCOLOR_BLUE = 5,
-	TEXTCOLOR_GREEN = 18,
-	TEXTCOLOR_LIGHTGREEN = 66,
-	TEXTCOLOR_DARKBROWN = 78,
-	TEXTCOLOR_LIGHTBLUE = 89,
+	TEXTCOLOR_LIGHTGREEN = 30,
+	TEXTCOLOR_LIGHTBLUE = 35,
 	TEXTCOLOR_MAYABLUE = 95,
 	TEXTCOLOR_DARKRED = 108,
-	TEXTCOLOR_DARKPURPLE = 112,
-	TEXTCOLOR_BROWN = 120,
-	TEXTCOLOR_GREY = 129,
-	TEXTCOLOR_TEAL = 143,
-	TEXTCOLOR_DARKPINK = 152,
-	TEXTCOLOR_PURPLE = 154,
-	TEXTCOLOR_DARKORANGE = 156,
+	TEXTCOLOR_LIGHTGREY = 129,
+	TEXTCOLOR_SKYBLUE = 143,
+	TEXTCOLOR_PURPLE = 155,
 	TEXTCOLOR_RED = 180,
-	TEXTCOLOR_PINK = 190,
-	TEXTCOLOR_ORANGE = 192,
-	TEXTCOLOR_DARKYELLOW = 205,
+	TEXTCOLOR_ORANGE = 198,
 	TEXTCOLOR_YELLOW = 210,
-	TEXTCOLOR_WHITE = 215,
+	TEXTCOLOR_WHITE_EXP = 215,
 	TEXTCOLOR_NONE = 255,
 };
 
-enum Icons_t
-{
+enum Icons_t {
 	ICON_POISON = 1 << 0,
 	ICON_BURN = 1 << 1,
-	ICON_ENERGY = 1 << 2,
+	ICON_ENERGY =  1 << 2,
 	ICON_DRUNK = 1 << 3,
 	ICON_MANASHIELD = 1 << 4,
 	ICON_PARALYZE = 1 << 5,
@@ -292,8 +379,7 @@ enum Icons_t
 	ICON_PIGEON = 1 << 14,
 };
 
-enum WeaponType_t : uint8_t
-{
+enum WeaponType_t : uint8_t {
 	WEAPON_NONE,
 	WEAPON_SWORD,
 	WEAPON_CLUB,
@@ -302,11 +388,9 @@ enum WeaponType_t : uint8_t
 	WEAPON_DISTANCE,
 	WEAPON_WAND,
 	WEAPON_AMMO,
-	WEAPON_QUIVER,
 };
 
-enum Ammo_t : uint8_t
-{
+enum Ammo_t : uint8_t {
 	AMMO_NONE,
 	AMMO_BOLT,
 	AMMO_ARROW,
@@ -317,35 +401,30 @@ enum Ammo_t : uint8_t
 	AMMO_SNOWBALL,
 };
 
-enum WeaponAction_t : uint8_t
-{
+enum WeaponAction_t : uint8_t {
 	WEAPONACTION_NONE,
 	WEAPONACTION_REMOVECOUNT,
 	WEAPONACTION_REMOVECHARGE,
 	WEAPONACTION_MOVE,
 };
 
-enum WieldInfo_t
-{
-	WIELDINFO_NONE = 0 << 0,
+enum WieldInfo_t {
 	WIELDINFO_LEVEL = 1 << 0,
 	WIELDINFO_MAGLV = 1 << 1,
 	WIELDINFO_VOCREQ = 1 << 2,
 	WIELDINFO_PREMIUM = 1 << 3,
 };
 
-enum Skulls_t : uint8_t
-{
+enum Skulls_t : uint8_t {
 	SKULL_NONE = 0,
 	SKULL_YELLOW = 1,
 	SKULL_GREEN = 2,
 	SKULL_WHITE = 3,
 	SKULL_RED = 4,
-	SKULL_BLACK = 5
+	SKULL_BLACK = 5,
 };
 
-enum PartyShields_t : uint8_t
-{
+enum PartyShields_t : uint8_t {
 	SHIELD_NONE = 0,
 	SHIELD_WHITEYELLOW = 1,
 	SHIELD_WHITEBLUE = 2,
@@ -359,16 +438,37 @@ enum PartyShields_t : uint8_t
 	SHIELD_YELLOW_NOSHAREDEXP = 10,
 };
 
-enum GuildEmblems_t : uint8_t
-{
+enum GuildEmblems_t : uint8_t {
 	GUILDEMBLEM_NONE = 0,
 	GUILDEMBLEM_ALLY = 1,
 	GUILDEMBLEM_ENEMY = 2,
 	GUILDEMBLEM_NEUTRAL = 3
 };
 
-enum item_t : uint16_t
-{
+enum item_t : uint16_t {
+	
+	ITEM_BROWSEFIELD = 460,
+	
+	ITEM_DEPOT_NULL = 25452, // for internal use
+
+	ITEM_DEPOT_I = 25453,
+	ITEM_DEPOT_II = 25454,
+	ITEM_DEPOT_III = 25455,
+	ITEM_DEPOT_IV = 25456,
+	ITEM_DEPOT_V = 25457,
+	ITEM_DEPOT_VI = 25458,
+	ITEM_DEPOT_VII = 25459,
+	ITEM_DEPOT_VIII = 25460,
+	ITEM_DEPOT_IX = 25461,
+	ITEM_DEPOT_X = 25462,
+	ITEM_DEPOT_XI = 25463,
+	ITEM_DEPOT_XII = 25464,
+	ITEM_DEPOT_XIII = 25465,
+	ITEM_DEPOT_XIV = 25466,
+	ITEM_DEPOT_XV = 25467,
+	ITEM_DEPOT_XVI = 25468,
+	ITEM_DEPOT_XVII = 25469,
+	
 	ITEM_FIREFIELD_PVP_FULL = 1487,
 	ITEM_FIREFIELD_PVP_MEDIUM = 1488,
 	ITEM_FIREFIELD_PVP_SMALL = 1489,
@@ -394,14 +494,18 @@ enum item_t : uint16_t
 	ITEM_WILDGROWTH_SAFE = 11099,
 
 	ITEM_BAG = 1987,
-	ITEM_BACKPACK = 1988,
 
 	ITEM_GOLD_COIN = 2148,
 	ITEM_PLATINUM_COIN = 2152,
 	ITEM_CRYSTAL_COIN = 2160,
+	ITEM_BAR_COIN = 17100,
+
+	ITEM_REWARD_CONTAINER = 21518, // expedition bag
+	ITEM_REWARD_CHEST = 21584, // sturdy chest
 
 	ITEM_DEPOT = 2594,
-	ITEM_LOCKER = 2589,
+	ITEM_LOCKER1 = 2589,
+	ITEM_INBOX = 14404,
 
 	ITEM_MALE_CORPSE = 3058,
 	ITEM_FEMALE_CORPSE = 3065,
@@ -416,11 +520,10 @@ enum item_t : uint16_t
 
 	ITEM_AMULETOFLOSS = 2173,
 
-	ITEM_DOCUMENT_RO = 1968, // read-only
+	ITEM_DOCUMENT_RO = 1968, //read-only
 };
 
-enum PlayerFlags : uint64_t
-{
+enum PlayerFlags : uint64_t {
 	PlayerFlag_CannotUseCombat = 1 << 0,
 	PlayerFlag_CannotAttackPlayer = 1 << 1,
 	PlayerFlag_CannotAttackMonster = 1 << 2,
@@ -459,13 +562,9 @@ enum PlayerFlags : uint64_t
 	PlayerFlag_IgnoreWeaponCheck = static_cast<uint64_t>(1) << 35,
 	PlayerFlag_CannotBeMuted = static_cast<uint64_t>(1) << 36,
 	PlayerFlag_IsAlwaysPremium = static_cast<uint64_t>(1) << 37,
-	PlayerFlag_IgnoreYellCheck = static_cast<uint64_t>(1) << 38,
-	PlayerFlag_IgnoreSendPrivateCheck = static_cast<uint64_t>(1) << 39,
-	PlayerFlag_CanThrowFar = static_cast<uint64_t>(1) << 40,
 };
 
-enum ReloadTypes_t : uint8_t
-{
+enum ReloadTypes_t : uint8_t  {
 	RELOAD_TYPE_ALL,
 	RELOAD_TYPE_ACTIONS,
 	RELOAD_TYPE_CHAT,
@@ -476,19 +575,31 @@ enum ReloadTypes_t : uint8_t
 	RELOAD_TYPE_GLOBALEVENTS,
 	RELOAD_TYPE_ITEMS,
 	RELOAD_TYPE_MONSTERS,
-	RELOAD_TYPE_MOUNTS,
 	RELOAD_TYPE_MOVEMENTS,
 	RELOAD_TYPE_NPCS,
 	RELOAD_TYPE_QUESTS,
 	RELOAD_TYPE_RAIDS,
-	RELOAD_TYPE_SCRIPTS,
 	RELOAD_TYPE_SPELLS,
 	RELOAD_TYPE_TALKACTIONS,
 	RELOAD_TYPE_WEAPONS,
 };
 
-inline constexpr int32_t CHANNEL_GUILD = 0x00;
-inline constexpr int32_t CHANNEL_PARTY = 0x01;
-inline constexpr int32_t CHANNEL_PRIVATE = 0xFFFF;
+static constexpr int32_t CHANNEL_GUILD = 0x00;
+static constexpr int32_t CHANNEL_PARTY = 0x01;
+static constexpr int32_t CHANNEL_PRIVATE = 0xFFFF;
+
+static constexpr int32_t CHANNEL_CAST = 40;
+const std::string LIVE_CAST_CHAT_NAME = "Live Channel";
+
+
+//Reserved player storage key ranges;
+//[10000000 - 20000000];
+static constexpr int32_t PSTRG_RESERVED_RANGE_START = 10000000;
+static constexpr int32_t PSTRG_RESERVED_RANGE_SIZE = 10000000;
+//[1000 - 1500];
+static constexpr int32_t PSTRG_OUTFITS_RANGE_START = (PSTRG_RESERVED_RANGE_START + 1000);
+static constexpr int32_t PSTRG_OUTFITS_RANGE_SIZE = 500;
+
+#define IS_IN_KEYRANGE(key, range) (key >= PSTRG_##range##_START && ((key - PSTRG_##range##_START) <= PSTRG_##range##_SIZE))
 
 #endif

@@ -1,90 +1,143 @@
+    STATUS_NOT_ON_WAR = 0
+	STATUS_ON_WAR = 1
+	STORAGE_PLAYER_IN_ARENA = 108554
+	STORAGE_PLAYER_WAR_TYPE = 108555
+	STORAGE_PLAYER_DISABLED_POTIONS = 108556
+	STORAGE_PLAYER_TEAM = 108557
+	WAR_TYPE_NO_UE = 1
+	WAR_TYPE_SD_ONLY = 2
+
+	global_arenas = {
+		"Edron",
+		"Carlin",
+		"Darashia"
+	}
 math.randomseed(os.time())
 dofile('data/lib/lib.lua')
 
--- LuaFormatter off
-ropeSpots = {
-	384, 418, 8278, 8592, 13189, 14435, 14436, 14857, 15635, 19518, 24621, 24622, 24623, 24624, 26019
+NOT_MOVEABLE_ACTION = 8000
+PARTY_PROTECTION = 1 -- Set to 0 to disable.
+ADVANCED_SECURE_MODE = 1 -- Set to 0 to disable.
+
+STORAGEVALUE_PROMOTION = 30018
+STORAGEVALUE_ASSISTS = 30000
+STORAGEVALUE_DEATHS = 30001
+STORAGEVALUE_KILLS = 30002
+
+ropeSpots = {384, 418, 8278, 8592, 13189, 14435, 14436, 15635, 19518, 26019, 24621, 24622, 24623, 24624}
+	
+doors = {
+    [36329] = 36331,
+	[25163] = 25162,
+	[26541] = 26545,
+	[26543] = 26546,
+	[34671] = 34673,
+	[34672] = 34674,
+	[34675] = 34677,
+	[34676] = 34678,
+	[34679] = 34680,
+	[34681] = 34682,
+	[35007] = 35016,
+	[35607] = 35611,
+	[35608] = 35611,
+	[35609] = 35612,
+	[35610] = 35612,
+	[35668] = 35672,
+	[35669] = 35672,
+	[35670] = 35673,
+	[35671] = 35673,
+	[35684] = 35688,
+	[35685] = 35689,
+	[35686] = 35690,
+	[35687] = 35691,
+	[36498] = 36499,
+	[36500] = 36501,
+	[33120] = 33122,
+	[33119] = 33122,
+	[33118] = 33121,
+	[33117] = 33121,
+	[12692] = 12695,  [36405] = 36406, [36403] = 36404, [35008] = 35017, [35017] = 35008, [1209] = 1211, [1210] = 1211, [1212] = 1214, [1213] = 1214, [1219] = 1220, [1221] = 1222, [1231] = 1233, [1232] = 1233, [1234] = 1236,
+	[1235] = 1236, [1237] = 1238, [1239] = 1240, [1249] = 1251, [1250] = 1251, [1252] = 1254, [1253] = 1254, [1539] = 1540, [1541] = 1542,
+	[3535] = 3537, [3536] = 3537, [3538] = 3539, [3544] = 3546, [3545] = 3546, [3547] = 3548, [4913] = 4915, [4914] = 4915, [4916] = 4918,
+	[4917] = 4918, [5082] = 5083, [5084] = 5085, [5098] = 5100, [5099] = 5100, [5101] = 5102, [5107] = 5109, [5108] = 5109, [5110] = 5111,
+	[5116] = 5118, [5117] = 5118, [5119] = 5120, [5125] = 5127, [5126] = 5127, [5128] = 5129, [5134] = 5136, [5135] = 5136, [5137] = 5139,
+	[5138] = 5139, [5140] = 5142, [5141] = 5142, [5143] = 5145, [5144] = 5145, [5278] = 5280, [5279] = 5280, [5281] = 5283, [5282] = 5283,
+	[5284] = 5285, [5286] = 5287, [5515] = 5516, [5517] = 5518, [5732] = 5734, [5733] = 5734, [5735] = 5737, [5736] = 5737, [6192] = 6194,
+	[6193] = 6194, [6195] = 6197, [6196] = 6197, [6198] = 6199, [6200] = 6201, [6249] = 6251, [6250] = 6251, [6252] = 6254, [6253] = 6254,
+	[6255] = 6256, [6257] = 6258, [6795] = 6796, [6797] = 6798, [6799] = 6800, [6801] = 6802, [6891] = 6893, [6892] = 6893, [6894] = 6895,
+	[6900] = 6902, [6901] = 6902, [6903] = 6904, [7033] = 7035, [7034] = 7035, [7036] = 7037, [7042] = 7044, [7043] = 7044, [7045] = 7046,
+	[7054] = 7055, [7056] = 7057, [8541] = 8543, [8542] = 8543, [8544] = 8546, [8545] = 8546, [8547] = 8548, [8549] = 8550, [9165] = 9167,
+	[9166] = 9167, [9168] = 9170, [9169] = 9170, [9171] = 9172, [9173] = 9174, [9267] = 9269, [9268] = 9269, [9270] = 9272, [9271] = 9272,
+	[9273] = 9274, [9275] = 9276, [10276] = 10277, [10274] = 10275, [10268] = 10270, [10269] = 10270, [10271] = 10273, [10272] = 10273, [10471] = 10472,
+	[10480] = 10481, [10477] = 10479, [10478] = 10479, [10468] = 10470, [10469] = 10470, [10775] = 10777, [10776] = 10777, [12092] = 12094, [12093] = 12094,
+	[12188] = 12190, [12189] = 12190, [19841] = 19842, [19843] = 19844, [19981] = 19982, [19983] = 19984, [20273] = 20275,
+	[20274] = 20275, [20276] = 20277, [17235] = 17236, [18208] = 18209, [13022] = 13023, [10784] = 10786, [10785] = 10786, [12099] = 12101, [12100] = 12101,
+	[12197] = 12199, [12198] = 12199, [19849] = 19851, [19850] = 19851, [19852] = 19853, [19990] = 19991, [19992] = 19993, [20282] = 20284,
+	[20283] = 20284, [20285] = 20286, [17237] = 17238, [13020] = 13021, [10780] = 10781, [12095] = 12096, [12195] = 12196, [19845] = 19846, [19985] = 19986,
+	[20278] = 20279, [10789] = 10790, [12102] = 12103, [12204] = 12205, [19854] = 19855, [19994] = 19995, [20287] = 20288, [10782] = 10783, [12097] = 12098,
+	[12193] = 12194, [19847] = 19848, [19987] = 19988, [20280] = 20281, [10791] = 10792, [12104] = 12105, [12202] = 12203, [19856] = 19857, [19996] = 19997,
+	[20289] = 20290, [22814] = 22815, [22815] = 22816, [22817] = 22818, [22819] = 22820, [22823] = 22825, [22824] = 22825, [22826] = 22827, [22828] = 22829,
+	[25158] = 25159, [25160] = 25161, [25164] = 25165, [27209] = 27210, [27211] = 27212, [33295] = 33296,
+	[5132] = 5133, [1255] = 1256, [34683] = 34684, [34685] = 34686
+
 }
 
-keys = {
-	2086, 2087, 2088, 2089, 2090, 2091, 2092, 10032
+verticalOpenDoors = {
+	1211, 1220, 1224, 1228, 1233, 1238, 1242, 1246, 1251, 1256, 1260, 1540, 3546, 3548, 3550, 3552, 4915, 5083, 5109, 5111, 5113, 5115, 5127, 5129, 5131,
+	5133, 5142, 5145, 5283, 5285, 5289, 5293, 5516, 5737, 5749, 6194, 6199, 6203, 6207, 6251, 6256, 6260, 6264, 6798, 6802, 6902, 6904, 6906, 6908, 7044,
+	7046, 7048, 7050, 7055, 8543, 8548, 8552, 8556, 9167, 9172, 9269, 9274, 9274, 9269, 9278, 9282, 10270, 10275, 10279, 10283, 10479, 10481, 10485, 10483,
+	10786, 12101, 12199, 19851, 19853, 19991, 19993, 20284, 20286, 17238, 13021, 10790, 12103, 12205, 19855, 19995, 20288, 10792, 12105, 12203, 19857, 19997,
+	20290, 22825, 35611, 34680, 33122, 33121, 22827, 22829, 22831, 25162, 36332, 25159, 35673, 36499, 35688, 35689, 35690, 35691, 34682, 35672, 34686, 36404, 36331, 12695, 25163, 25161, 26546, 34673, 34674, 34677, 34678, 35016, 35612
 }
 
-openDoors = {
-	1211, 1214, 1233, 1236, 1251, 1254, 3537, 3546, 4915, 4918, 5100, 5109, 5118, 5127, 5136, 5139, 5142,
-	5145, 5280, 5283, 5734, 5737, 6194, 6197, 6251, 6254, 6893, 6902, 7035, 7044, 8543, 8546, 9167, 9170,
-	9269, 9272, 10270, 10273, 10470, 10479, 10777, 10786, 12094, 12101, 12190, 12199, 12695, 12703, 14635,
-	17435, 19842, 19851, 19982, 19991, 20275, 20284, 22816, 22825, 25285, 25292, 26533, 26534, 31176, 31024,
-	31025, 32691, 32692, 32695, 32696, 33432, 33433, 33493, 33494, 36292, 36293, 36869, 36872, 37293, 37296,
-	37299, 37302, 37596, 37597, 39119, 39120
-}
-closedDoors = {
-	1210, 1213, 1232, 1235, 1250, 1253, 3536, 3545, 4914, 4917, 5099, 5108, 5117, 5126, 5135, 5138, 5141,
-	5144, 5279, 5282, 5733, 5736, 6193, 6196, 6250, 6253, 6892, 6901, 7034, 7043, 8542, 8545, 9166, 9169,
-	9268, 9271, 10269, 10272, 10469, 10478, 10776, 10785, 12093, 12100, 12189, 12198, 12692, 12701, 14633,
-	14640, 19841, 19850, 19981, 19990, 20274, 20283, 22815, 22824, 25284, 25291, 26529, 26531, 27559, 31020,
-	31022, 32689, 32690, 32693, 32694, 33428, 33430, 33489, 33491, 36288, 36290, 36868, 36871, 37292, 37295,
-	37298, 37301, 37592, 37594, 39115, 39117
-}
-lockedDoors = {
-	1209, 1212, 1231, 1234, 1249, 1252, 3535, 3544, 4913, 4916, 5098, 5107, 5116, 5125, 5134, 5137, 5140,
-	5143, 5278, 5281, 5732, 5735, 6192, 6195, 6249, 6252, 6891, 6900, 7033, 7042, 8541, 8544, 9165, 9168,
-	9267, 9270, 10268, 10271, 10468, 10477, 10775, 10784, 12092, 12099, 12188, 12197, 13236, 13237, 14634,
-	14641, 19840, 19849, 19980, 19989, 20273, 20282, 22814, 22823, 25283, 25290, 26530, 26532, 31175, 31021,
-	31023, 32705, 32706, 32707, 32708, 33429, 33431, 33490, 33492, 36289, 36291, 36867, 36870, 37291, 37294,
-	37297, 37300, 37593, 37595, 39116, 39118
+horizontalOpenDoors = {
+	1214, 1222, 1226, 1230, 1236, 1240, 1244, 1248, 1254, 1258, 1262, 1542, 3537, 3539, 3541, 3543, 4918, 5085, 5100, 5102, 5104, 5106, 5118,
+	5120, 5122, 5124, 5136, 5139, 5280, 5287, 5291, 5295, 5518, 5734, 5746, 6197, 6201, 6205, 6209, 6254, 6258, 6262, 6266, 6796, 6800, 6893,
+	6895, 6897, 6899, 7035, 7037, 7039, 7041, 7057, 8546, 8550, 8554, 8558, 9170, 9174, 9272, 9276, 9280, 9284, 10273, 10277, 10281, 10285,
+	10470, 10472, 10476, 10474, 10777, 12094, 12190, 19842, 19844, 19982, 19984, 20275, 20277, 17236, 18209, 13023, 10781, 12096, 12196,
+	19846, 19986, 20279, 10783, 12098, 12194, 19848, 19988, 36501, 20281, 22816, 22820, 22822, 25165, 33296, 34684, 36406, 22818, 26545
 }
 
-openExtraDoors = {
-	1540, 1542, 6796, 6798, 6800, 6802, 6960, 6962, 7055, 7057, 25159, 25161, 27198, 27200, 27243, 27245,
-	31541, 31542, 34152, 34153, 36878, 36880, 39204
-}
-closedExtraDoors = {
-	1539, 1541, 6795, 6797, 6799, 6801, 6959, 6961, 7054, 7056, 25158, 25160, 27197, 27199, 27242, 27244,
-	31314, 31315, 34150, 34151, 36877, 36879, 39203
+openSpecialDoors = {
+	1224, 1226, 1228, 1230, 1242, 1244, 1246, 1248, 1258, 1260, 1262, 3541, 3543, 3550, 3552, 5104, 5106, 5113, 5115, 5122, 5124, 5131, 5133,
+	5289, 5291, 5293, 5295, 6203, 6205, 6207, 6209, 6260, 6262, 6264, 6266, 6897, 6899, 6906, 6908, 7039, 7041, 7048, 7050, 8552, 8554, 8556, 8558,
+	9176, 9178, 9180, 9182, 9278, 9280, 9282, 9284, 10279, 10281, 10283, 10285, 10474, 10476, 10483, 10485, 10781, 12096, 12196, 19846, 19986, 20279,
+	10783, 12098, 12194, 19848, 19988, 20281, 10790, 12103, 12205, 19855, 19995, 20288, 10792, 12105, 12203, 19857, 19997, 20290, 34681, 34679
 }
 
-openHouseDoors = {
-	1220, 1222, 1238, 1240, 3539, 3548, 5083, 5085, 5102, 5111, 5120, 5129, 5285, 5287, 5516, 5518, 6199,
-	6201, 6256, 6258, 6895, 6904, 7037, 7046, 8548, 8550, 9172, 9174, 9274, 9276, 10275, 10277, 10472, 10481,
-	13021, 13023, 17236, 17238, 18209, 19844, 19853, 19984, 19993, 20277, 20286, 22818, 22827, 35928, 35930
-}
-closedHouseDoors = {
-	1219, 1221, 1237, 1239, 3538, 3547, 5082, 5084, 5101, 5110, 5119, 5128, 5284, 5286, 5515, 5517, 6198,
-	6200, 6255, 6257, 6894, 6903, 7036, 7045, 8547, 8549, 9171, 9173, 9273, 9275, 10274, 10276, 10471, 10480,
-	13020, 13022, 17235, 17237, 18208, 19843, 19852, 19983, 19992, 20276, 20285, 22817, 22826, 35927, 35929
+questDoors = {
+	1223, 1225, 1241, 1243, 1255, 1257, 3542, 3551, 5105, 5114, 5123, 5132, 5288, 5290, 5745, 5748, 6202, 6204, 6259, 6261, 6898, 6907, 7040, 7049,
+	8551, 8553, 9175,9177, 9277, 9279, 10278, 10280, 10475, 10484, 10782, 12097, 19847, 19987, 20280, 10791, 12104, 12204, 12195, 19856, 19996, 20289,
+	22821, 22830, 25164, 34683, 34685, 36403, 36405, 25162, 36498, 36500
 }
 
-openQuestDoors = {
-	1224, 1226, 1242, 1244, 1256, 1258, 3543, 3552, 5106, 5115, 5124, 5133, 5289, 5291, 5746, 5749, 6203,
-	6205, 6260, 6262, 6899, 6908, 7041, 7050, 8552, 8554, 9176, 9178, 9278, 9280, 10279, 10281, 10476, 10485,
-	10783, 10792, 12098, 12105, 12196, 12205, 14639, 14646, 19848, 19857, 19988, 19997, 20281, 20290, 22822,
-	22831, 25163, 25165, 25289, 25296, 32698, 32700, 32702, 32704, 34320, 34322, 34225, 34227
-}
-closedQuestDoors = {
-	1223, 1225, 1241, 1243, 1255, 1257, 3542, 3551, 5105, 5114, 5123, 5132, 5288, 5290, 5745, 5748, 6202,
-	6204, 6259, 6261, 6898, 6907, 7040, 7049, 8551, 8553, 9175, 9177, 9277, 9279, 10278, 10280, 10475, 10484,
-	10782, 10791, 12097, 12104, 12195, 12204, 14638, 14645, 19847, 19856, 19987, 19996, 20280, 20289, 22821,
-	22830, 25162, 25164, 25288, 25295, 32697, 32699, 32701, 32703, 34319, 34321, 34224, 34226
+levelDoors = {
+	1227, 1229, 1245, 1247, 1259, 1261, 3540, 3549, 5103, 5112, 5121, 5130, 5292, 5294, 6206, 6208, 6263, 6265, 6896, 6905, 7038, 7047, 8555, 8557,9179, 9181,
+	9281, 9283, 10282, 10284, 10473, 10482, 10780, 10789, 10780, 12095, 12195, 19845, 19985, 20278, 10789, 12102, 12193, 12202, 19854, 19994, 20287
 }
 
-openLevelDoors = {
-	1228, 1230, 1246, 1248, 1260, 1262, 3541, 3550, 5104, 5113, 5122, 5131, 5293, 5295, 6207, 6209, 6264,
-	6266, 6897, 6906, 7039, 7048, 8556, 8558, 9180, 9182, 9282, 9284, 10283, 10285, 10474, 10483, 10781,
-	10790, 12096, 12103, 12194, 12203, 19846, 19855, 19986, 19995, 20279, 20288, 22820, 22829, 25287, 25294
-}
-closedLevelDoors = {
-	1227, 1229, 1245, 1247, 1259, 1261, 3540, 3549, 5103, 5112, 5121, 5130, 5292, 5294, 6206, 6208, 6263,
-	6265, 6896, 6905, 7038, 7047, 8555, 8557, 9179, 9181, 9281, 9283, 10282, 10284, 10473, 10482, 10780,
-	10789, 12095, 12102, 12193, 12202, 19845, 19854, 19985, 19994, 20278, 20287, 22819, 22828, 25286, 25293
-}
--- LuaFormatter on
+keys = {2086, 2087, 2088, 2089, 2090, 2091, 2092, 10032}
+
+
+--[ Impact Analyser ]--
+updateInterval = 2 --every 2 seconds
+-- Healing
+healingImpact = {} -- global table to insert data
+-- Damage
+damageImpact = {} -- global table to insert data
+
+-- New prey => preyTimeLeft
+nextPreyTime = {}
+
+-- From here down are the functions of TFS
 
 function getDistanceBetween(firstPosition, secondPosition)
 	local xDif = math.abs(firstPosition.x - secondPosition.x)
 	local yDif = math.abs(firstPosition.y - secondPosition.y)
 	local posDif = math.max(xDif, yDif)
-	if firstPosition.z ~= secondPosition.z then posDif = posDif + 15 end
+	if firstPosition.z ~= secondPosition.z then
+		posDif = posDif + 15
+	end
 	return posDif
 end
 
@@ -93,7 +146,9 @@ function getFormattedWorldTime()
 	local hours = math.floor(worldTime / 60)
 
 	local minutes = worldTime % 60
-	if minutes < 10 then minutes = '0' .. minutes end
+	if minutes < 10 then
+		minutes = '0' .. minutes
+	end
 	return hours .. ':' .. minutes
 end
 
@@ -101,138 +156,289 @@ function getLootRandom()
 	return math.random(0, MAX_LOOTCHANCE) / configManager.getNumber(configKeys.RATE_LOOT)
 end
 
----@generic T: table, K, V
----@param array T The table to search in
----@param value K The value to search for
----@return boolean found Whether the value was found
 table.contains = function(array, value)
-	for _, targetColumn in pairs(array) do if targetColumn == value then return true end end
+	for _, targetColumn in pairs(array) do
+		if targetColumn == value then
+			return true
+		end
+	end
 	return false
 end
 
----@param str string
----@param sep string
----@return table<integer, string>
 string.split = function(str, sep)
 	local res = {}
-	for v in str:gmatch("([^" .. sep .. "]+)") do res[#res + 1] = v end
+	for v in str:gmatch("([^" .. sep .. "]+)") do
+		res[#res + 1] = v
+	end
 	return res
 end
 
----@param str string
----@param sep string
----@return table<integer, string>
 string.splitTrimmed = function(str, sep)
 	local res = {}
-	for v in str:gmatch("([^" .. sep .. "]+)") do res[#res + 1] = v:trim() end
+	for v in str:gmatch("([^" .. sep .. "]+)") do
+		res[#res + 1] = v:trim()
+	end
 	return res
 end
 
----@param str string
----@return string
-string.trim = function(str) return str:match '^()%s*$' and '' or str:match '^%s*(.*%S)' end
-
-do
-	local function tchelper(first, rest) return first:upper() .. rest:lower() end
-
-	-- Add extra characters to the pattern if you need to. _ and ' are
-	--  found in the middle of identifiers and English words.
-	-- We must also put %w_' into [%w_'] to make it handle normal stuff
-	-- and extra stuff the same.
-	-- This also turns hex numbers into, eg. 0Xa7d4
-	string.titleCase = function(str) return str:gsub("(%a)([%w_']*)", tchelper) end
+string.trim = function(str)
+	return str:match'^()%s*$' and '' or str:match'^%s*(.*%S)'
 end
 
-function getPlayerDatabaseInfo(name_or_guid)
-	local sql_where = ""
+-- From here down are the custom functions
 
-	if type(name_or_guid) == 'string' then
-		sql_where = "WHERE `p`.`name`=" .. db.escapeString(name_or_guid) .. ""
-	elseif type(name_or_guid) == 'number' then
-		sql_where = "WHERE `p`.`id`='" .. name_or_guid .. "'"
-	else
-		return false
+local start = os.time()
+local linecount = 0
+debug.sethook(function(event, line)
+    linecount = linecount + 1
+    if os.mtime() - start >= 1 then
+        if linecount >= 30000 then
+            print(string.format("possible infinite loop in file %s near line %s", debug.getinfo(2).source, line))
+            debug.sethook()
+        end
+        linecount = 0
+        start = os.time()
+    end
+end, "l")
+
+function doCreatureSayWithRadius(cid, text, type, radiusx, radiusy, position)
+	if not position then
+		position = Creature(cid):getPosition()
 	end
 
-	local sql_query = [[
-		SELECT
-			`p`.`id` as `guid`,
-			`p`.`name`,
-			CASE WHEN `po`.`player_id` IS NULL
-				THEN 0
-				ELSE 1
-			END AS `online`,
-			`p`.`group_id`,
-			`p`.`level`,
-			`p`.`experience`,
-			`p`.`vocation`,
-			`p`.`maglevel`,
-			`p`.`skill_fist`,
-			`p`.`skill_club`,
-			`p`.`skill_sword`,
-			`p`.`skill_axe`,
-			`p`.`skill_dist`,
-			`p`.`skill_shielding`,
-			`p`.`skill_fishing`,
-			`p`.`town_id`,
-			`p`.`balance`,
-			`gm`.`guild_id`,
-			`gm`.`nick`,
-			`g`.`name` AS `guild_name`,
-			CASE WHEN `p`.`id` = `g`.`ownerid`
-				THEN 1
-				ELSE 0
-			END AS `is_leader`,
-			`gr`.`name` AS `rank_name`,
-			`gr`.`level` AS `rank_level`,
-			`h`.`id` AS `house_id`,
-			`h`.`name` AS `house_name`,
-			`h`.`town_id` AS `house_town`
-		FROM `players` AS `p`
-		LEFT JOIN `players_online` AS `po`
-			ON `p`.`id` = `po`.`player_id`
-		LEFT JOIN `guild_membership` AS `gm`
-			ON `p`.`id` = `gm`.`player_id`
-		LEFT JOIN `guilds` AS `g`
-			ON `gm`.`guild_id` = `g`.`id`
-		LEFT JOIN `guild_ranks` AS `gr`
-			ON `gm`.`rank_id` = `gr`.`id`
-		LEFT JOIN `houses` AS `h`
-			ON `p`.`id` = `h`.`owner`
-	]] .. sql_where
+local spectators, spectator = Game.getSpectators(position, false, true, radiusx, radiusx, radiusy, radiusy)
+	for i = 1, #spectators do
+		spectator = spectators[i]
+		spectator:say(text, type, false, spectator, position)
+	end
+end
 
-	local query = db.storeQuery(sql_query)
-	if not query then return false end
+function getBlessingsCost(level)
+	if level <= 30 then
+		return 2000
+	elseif level >= 120 then
+		return 20000
+	else
+		return (level - 20) * 200
+	end
+end
 
-	local info = {
-		["guid"] = result.getNumber(query, "guid"),
-		["name"] = result.getString(query, "name"),
-		["online"] = result.getNumber(query, "online"),
-		["group_id"] = result.getNumber(query, "group_id"),
-		["level"] = result.getNumber(query, "level"),
-		["experience"] = result.getNumber(query, "experience"),
-		["vocation"] = result.getNumber(query, "vocation"),
-		["maglevel"] = result.getNumber(query, "maglevel"),
-		["skill_fist"] = result.getNumber(query, "skill_fist"),
-		["skill_club"] = result.getNumber(query, "skill_club"),
-		["skill_sword"] = result.getNumber(query, "skill_sword"),
-		["skill_axe"] = result.getNumber(query, "skill_axe"),
-		["skill_dist"] = result.getNumber(query, "skill_dist"),
-		["skill_shielding"] = result.getNumber(query, "skill_shielding"),
-		["skill_fishing"] = result.getNumber(query, "skill_fishing"),
-		["town_id"] = result.getNumber(query, "town_id"),
-		["balance"] = result.getNumber(query, "balance"),
-		["guild_id"] = result.getNumber(query, "guild_id"),
-		["nick"] = result.getString(query, "nick"),
-		["guild_name"] = result.getString(query, "guild_name"),
-		["is_leader"] = result.getNumber(query, "is_leader"),
-		["rank_name"] = result.getString(query, "rank_name"),
-		["rank_level"] = result.getNumber(query, "rank_level"),
-		["house_id"] = result.getNumber(query, "house_id"),
-		["house_name"] = result.getString(query, "house_name"),
-		["house_town"] = result.getNumber(query, "house_town")
+function getPvpBlessingCost(level)
+	if level <= 30 then
+		return 2000
+	elseif level >= 270 then
+		return 50000
+	else
+		return (level - 20) * 200
+	end
+end
+
+function isInRange(pos, fromPos, toPos)
+	return pos.x >= fromPos.x and pos.y >= fromPos.y and pos.z >= fromPos.z and pos.x <= toPos.x and pos.y <= toPos.y and pos.z <= toPos.z
+end
+
+function isNumber(str)
+	return tonumber(str) ~= nil
+end
+
+function Creature.getMonster(self)
+return self:isMonster() and self or nil
+end
+
+-- Stamina
+if nextUseStaminaTime == nil then
+    nextUseStaminaTime = {}
+end
+
+if nextUseStaminaPrey == nil then
+    nextUseStaminaPrey = {}
+end
+
+if nextUseXpStamina == nil then
+    nextUseXpStamina = {}
+end
+
+if lastItemImbuing == nil then
+    lastItemImbuing = {}
+end
+
+if nextDelayPreyReroll == nil then
+	nextDelayPreyReroll = {}
+end
+
+--Boss entry
+if not bosssPlayers then
+	bosssPlayers = {
+		addPlayers = function (self, cid)
+			local player = Player(cid)
+			if not player then return false end
+			if not self.players then
+				self.players = {}
+			end
+			self.players[player:getId()] = 1
+		end,
+		removePlayer = function (self, cid)
+			local player = Player(cid)
+			if not player then  return false end
+			if not self.players then return false end
+			self.players[player:getId()] = nil
+		end,
+		getPlayersCount = function (self)
+			if not self.players then return 0 end
+			local c = 0
+			for _ in pairs(self.players) do  c = c + 1 end
+			return c
+		end
 	}
+end
 
-	result.free(query)
-	return info
+-- function for the reload talkaction
+local logFormat = "[%s] %s %s"
+
+function logCommand(player, words, param)
+	local file = io.open("data/logs/" .. player:getName() .. " commands.log", "a")
+	if not file then
+		return
+	end
+
+	io.output(file)
+	io.write(logFormat:format(os.date("%d/%m/%Y %H:%M"), words, param):trim() .. "\n")
+	io.close(file)
+end
+
+-- MARRY
+PROPOSED_STATUS = 1
+MARRIED_STATUS = 2
+PROPACCEPT_STATUS = 3
+LOOK_MARRIAGE_DESCR = TRUE
+ITEM_WEDDING_RING = 2121
+ITEM_ENGRAVED_WEDDING_RING = 10502
+
+function getPlayerSpouse(id)
+    local resultQuery = db.storeQuery("SELECT `marriage_spouse` FROM `players` WHERE `id` = " .. db.escapeString(id))
+    if resultQuery ~= false then
+        local ret = result.getDataInt(resultQuery, "marriage_spouse")
+        result.free(resultQuery)
+        return ret
+    end
+    return -1
+end
+
+function setPlayerSpouse(id, val)
+    db.query("UPDATE `players` SET `marriage_spouse` = " .. val .. " WHERE `id` = " .. id)
+end
+
+function getPlayerMarriageStatus(id)
+    local resultQuery = db.storeQuery("SELECT `marriage_status` FROM `players` WHERE `id` = " .. db.escapeString(id))
+    if resultQuery ~= false then
+        local ret = result.getDataInt(resultQuery, "marriage_status")
+        result.free(resultQuery)
+        return ret
+    end
+    return -1
+end
+
+function setPlayerMarriageStatus(id, val)
+    db.query("UPDATE `players` SET `marriage_status` = " .. val .. " WHERE `id` = " .. id)
+end
+
+function Player:getMarriageDescription(thing)
+    local descr = ""
+    if getPlayerMarriageStatus(thing:getGuid()) == MARRIED_STATUS then
+        playerSpouse = getPlayerSpouse(thing:getGuid())
+        if self == thing then
+            descr = descr .. " You are "
+        elseif thing:getSex() == PLAYERSEX_FEMALE then
+            descr = descr .. " She is "
+        else
+            descr = descr .. " He is "
+        end
+        descr = descr .. "married to " .. getPlayerNameById(playerSpouse) .. '.'
+    end
+    return descr
+end
+
+-- The following 2 functions can be used for delayed shouted text
+function say(param)
+selfSay(text)
+doCreatureSay(param.cid, param.text, 1)
+end
+
+function delayedSay(text, delay)
+local delay = delay or 0
+local cid = getNpcCid()
+addEvent(say, delay, {cid = cid, text = text})
+end
+
+function functionRevert()
+Game.setStorageValue(GlobalStorage.FerumbrasAscendantQuest.Habitats.Corrupted, 0)
+Game.setStorageValue(GlobalStorage.FerumbrasAscendantQuest.Habitats.Desert, 0)
+Game.setStorageValue(GlobalStorage.FerumbrasAscendantQuest.Habitats.Dimension, 0)
+Game.setStorageValue(GlobalStorage.FerumbrasAscendantQuest.Habitats.Grass, 0)
+Game.setStorageValue(GlobalStorage.FerumbrasAscendantQuest.Habitats.Ice, 0)
+Game.setStorageValue(GlobalStorage.FerumbrasAscendantQuest.Habitats.Mushroom, 0)
+Game.setStorageValue(GlobalStorage.FerumbrasAscendantQuest.Habitats.Roshamuul, 0)
+Game.setStorageValue(GlobalStorage.FerumbrasAscendantQuest.Habitats.Venom, 0)
+Game.setStorageValue(GlobalStorage.FerumbrasAscendantQuest.Habitats.AllHabitats, 0)
+for a = 1, #basins do
+	local item = Tile(basins[a].pos):getItemById(24852)
+	item:transform(12070)
+end
+local specs, spec = Game.getSpectators(Position(33629, 32693, 12), false, false, 25, 25, 85, 85)
+for i = 1, #specs do
+	spec = specs[i]
+	if spec:isPlayer() then
+		spec:teleportTo(Position(33630, 32648, 12))
+		spec:getPosition():sendMagicEffect(CONST_ME_TELEPORT)
+		spec:sendTextMessage(MESSAGE_EVENT_ADVANCE, 'You were teleported because the habitats are returning to their original form.')
+	elseif spec:isMonster() then
+		spec:remove()
+	end
+end
+for x = 33611, 33625 do
+	for y = 32658, 32727 do
+		local position = Position(x, y, 12)
+		local tile = Tile(position)
+		if not tile then
+			return
+		end
+		local ground = tile:getGround()
+		if not ground then
+			return
+		end
+		ground:remove()
+		local items = tile:getItems()
+		if items then
+			for i = 1, #items do
+				local item = items[i]
+				item:remove()
+			end
+		end
+	end
+end
+
+for x = 33634, 33648 do
+	for y = 32658, 32727 do
+		local position = Position(x, y, 12)
+		local tile = Tile(position)
+		if not tile then
+			return
+		end
+		local ground = tile:getGround()
+		if not ground then
+			return
+		end
+		ground:remove()
+		local items = tile:getItems()
+		if items then
+			for i = 1, #items do
+				local item = items[i]
+				item:remove()
+			end
+		end
+	end
+end
+
+Game.loadMap('data/world/worldchanges/habitats.otbm')
+return true
 end

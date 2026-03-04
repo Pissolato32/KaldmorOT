@@ -1,104 +1,99 @@
-local function message(player, msg, ...)
-	player:sendTextMessage(MESSAGE_STATUS_CONSOLE_BLUE, string.format(msg, ...))
-end
+local itemFunctions = {
+	["actionid"] = { isActive = true, targetFunction = function (item, target) return item:setActionId(target) end },
+	["action"] = { isActive = true, targetFunction = function (item, target) return item:setActionId(target) end },
+	["aid"] = { isActive = true, targetFunction = function (item, target) return item:setActionId(target) end },
+	["description"] = { isActive = true, targetFunction = function (item, target) return item:setAttribute(ITEM_ATTRIBUTE_DESCRIPTION, target) end },
+	["desc"] = { isActive = true, targetFunction = function (item, target) return item:setAttribute(ITEM_ATTRIBUTE_DESCRIPTION, target) end },
+	["name"] = { isActive = true, targetFunction = function (item, target) return item:setAttribute(ITEM_ATTRIBUTE_NAME, target) end },
+	["remove"] = { isActive = true, targetFunction = function (item, target) return item:remove() end },
+	["decay"] = { isActive = true, targetFunction = function (item, target) return item:decay() end },
+	["transform"] = { isActive = true, targetFunction = function (item, target) return item:transform(target) end },
+	["clone"] = { isActive = true, targetFunction = function (item, target) return item:clone() end },
+	["attack"] = { isActive = true, targetFunction = function (item, target) return item:setAttribute(ITEM_ATTRIBUTE_ATTACK, target) end },
+	["defense"] = { isActive = true, targetFunction = function (item, target) return item:setAttribute(ITEM_ATTRIBUTE_DEFENSE, target) end },
+	["extradefense"] = { isActive = true, targetFunction = function (item, target) return item:setAttribute(ITEM_ATTRIBUTE_EXTRADEFENSE, target) end },
+	["armor"] = { isActive = true, targetFunction = function (item, target) return item:setAttribute(ITEM_ATTRIBUTE_ARMOR, target) end }
+}
 
-local function setAttribute(player, thing, attribute, value)
-	local attributeId = Game.getItemAttributeByName(attribute)
-	if attributeId == ITEM_ATTRIBUTE_NONE then return "Invalid attribute name." end
+local creatureFunctions = {
+	["health"] = { isActive = true, targetFunction = function (creature, target) return creature:addHealth(target) end },
+	["mana"] = { isActive = true, targetFunction = function (creature, target) return creature:addMana(target) end },
+	["speed"] = { isActive = true, targetFunction = function (creature, target) return creature:changeSpeed(target) end },
+	["droploot"] = { isActive = true, targetFunction = function (creature, target) return creature:setDropLoot(target) end },
+	["skull"] = { isActive = true, targetFunction = function (creature, target) return creature:setSkull(target) end },
+	["direction"] = { isActive = true, targetFunction = function (creature, target) return creature:setDirection(target) end },
+	["maxHealth"] = { isActive = true, targetFunction = function (creature, target) return creature:setMaxHealth(target) end },
+	["say"] = { isActive = true, targetFunction = function (creature, target) creature:say(target, TALKTYPE_SAY) end }
+}
 
-	if not thing:setAttribute(attribute, value) then return "Could not set attribute." end
-
-	message(player, "Attribute %s set to: %s", attribute, thing:getAttribute(attributeId))
-	thing:getPosition():sendMagicEffect(CONST_ME_MAGIC_GREEN)
-	return true
-end
-
----@type {[string]: fun(player: Player, creature: Creature, value: string): boolean}
-local creatureAttrs = {
-	health = function(player, creature, value)
-		creature:setHealth(math.floor(tonumber(value) or 0), player)
-		return true
-	end,
-
-	addSummon = function(player, creature, value)
-		local summon = Game.createMonster(value, creature:getPosition())
-		if not summon then return false end
-
-		creature:addSummon(summon)
-		return true
-	end,
-
-	event = function (player, creature, value)
-		creature:registerEvent(value)
-		return true
-	end
+local playerFunctions = {
+	["fyi"] = { isActive = true, targetFunction = function (player, target) return player:popupFYI(target) end },
+	["tutorial"] = { isActive = true, targetFunction = function (player, target) return player:sendTutorial(target) end },
+	["guildnick"] = { isActive = true, targetFunction = function (player, target) return player:setGuildNick(target) end },
+	["group"] = { isActive = true, targetFunction = function (player, target) return player:setGroup(Group(target)) end },
+	["vocation"] = { isActive = true, targetFunction = function (player, target) return player:setVocation(Vocation(target)) end },
+	["stamina"] = { isActive = true, targetFunction = function (player, target) return player:setStamina(target) end },
+	["town"] = { isActive = true, targetFunction = function (player, target) return player:setTown(Town(target)) end },
+	["balance"] = { isActive = true, targetFunction = function (player, target) return player:setBankBalance(target + player:getBankBalance()) end },
+	["save"] = { isActive = true, targetFunction = function (player, target) return target:save() end },
+	["type"] = { isActive = true, targetFunction = function (player, target) return player:setAccountType(target) end },
+	["skullTime"] = { isActive = true, targetFunction = function (player, target) return player:setSkullTime(target) end },
+	["maxMana"] = { isActive = true, targetFunction = function (player, target) return player:setMaxMana(target) end },
+	["addItem"] = { isActive = true, targetFunction = function (player, target) return player:addItem(target, 1) end },
+	["removeItem"] = { isActive = true, targetFunction = function (player, target) return player:removeItem(target, 1) end },
+	["premium"] = { isActive = true, targetFunction = function (player, target) return player:addPremiumDays(target) end }
 }
 
 function onSay(player, words, param)
-	local position = player:getPosition()
-	position:getNextPosition(player:getDirection())
-
-	local tile = Tile(position)
-	if not tile then
-		message(player, "There is no tile in front of you.")
-		return false
-	end
-
-	local thing = tile:getTopVisibleThing(player)
-	if not thing then
-		message(player, "There is an empty tile in front of you.")
-		return false
-	end
-
-	---@type string, string, string
-	local attribute, value, extra = unpack(param:splitTrimmed(","))
-	if attribute == "" then
-		message(player, "Usage: %s attribute, value.", words)
-		return false
-	end
-
-	local item = thing:getItem()
-	if item then
-		local response = setAttribute(player, item, attribute, value)
-		if response == true then return true end
-
-		if attribute == "custom" then
-			if not extra then
-				player:sendCancelMessage("You need to specify a custom attribute.")
-				return false
-			end
-
-			if not item:setCustomAttribute(value, extra) then
-				message(player, "Could not set custom attribute.")
-				return false
-			end
-
-			message(player, "Custom attribute %s set to: %s", value, item:getCustomAttribute(value))
-			position:sendMagicEffect(CONST_ME_MAGIC_GREEN)
-		else
-			message(player, response)
-		end
-		return false
-	end
-
-	local creature = thing:getCreature()
-	if creature then
-		local creatureAttr = creatureAttrs[attribute]
-		if not creatureAttr then
-			message(player, "Invalid attribute name.")
-			return false
-		end
-
-		local response = creatureAttr(player, creature, value)
-		if not response then
-			message(player, "Could not set attribute.")
-			return false
-		end
-
-		position:sendMagicEffect(CONST_ME_MAGIC_GREEN)
+	if(not player:getGroup():getAccess()) or player:getAccountType() < ACCOUNT_TYPE_GOD then
 		return true
 	end
 
-	player:sendCancelMessage("You can only use this command on items or creatures.")
+	if(param == "") then
+		player:sendTextMessage(MESSAGE_STATUS_CONSOLE_BLUE, "Command param required.")
+		return false
+	end
+
+	local position = player:getPosition()
+	position:getNextPosition(player:getDirection(), 1)
+
+	local split = param:split(",")
+	local itemFunction, creatureFunction, playerFunction = itemFunctions[split[1]], creatureFunctions[split[1]], playerFunctions[split[1]]
+	if(itemFunction and itemFunction.isActive) then
+		local item = Tile(position):getTopVisibleThing(player)
+		if(not item or not item:isItem()) then
+			player:sendTextMessage(MESSAGE_STATUS_CONSOLE_BLUE, "Item not found.")
+			return false
+		end
+		if(itemFunction.targetFunction(item, split[2])) then
+			position:sendMagicEffect(CONST_ME_MAGIC_GREEN)
+		else
+			player:sendTextMessage(MESSAGE_STATUS_CONSOLE_BLUE, "You cannot add that attribute to this item.")
+		end
+	elseif(creatureFunction and creatureFunction.isActive) then
+		local creature = Tile(position):getTopCreature()
+		if(not creature or not creature:isCreature()) then
+			player:sendTextMessage(MESSAGE_STATUS_CONSOLE_BLUE, "Creature not found.")
+			return false
+		end
+		if(creatureFunction.targetFunction(creature, split[2])) then
+			position:sendMagicEffect(CONST_ME_MAGIC_GREEN)
+		else
+			player:sendTextMessage(MESSAGE_STATUS_CONSOLE_BLUE, "You cannot add that attribute to this creature.")
+		end
+	elseif(playerFunction and playerFunction.isActive) then
+		local targetPlayer = Tile(position):getTopCreature()
+		if(not targetPlayer or not targetPlayer:getPlayer()) then
+			player:sendTextMessage(MESSAGE_STATUS_CONSOLE_BLUE, "Player not found.")
+			return false
+		end
+		if(playerFunction.targetFunction(targetPlayer, split[2])) then
+			position:sendMagicEffect(CONST_ME_MAGIC_GREEN)
+		else
+			player:sendTextMessage(MESSAGE_STATUS_CONSOLE_BLUE, "You cannot add that attribute to this player.")
+		end
+	else
+		player:sendTextMessage(MESSAGE_STATUS_CONSOLE_BLUE, "Unknow attribute.")
+	end
 	return false
 end

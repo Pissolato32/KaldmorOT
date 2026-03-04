@@ -1,13 +1,18 @@
-# Locate Crypto++ library
-# This module defines
-#   Crypto++_FOUND
-#   Crypto++_INCLUDE_DIR
-#   Crypto++_LIBRARIES
+# FindCrypto++.cmake
+# Finds Crypto++ library
+#
+# This module defines:
+#   Crypto++_FOUND - True if Crypto++ was found
+#   Crypto++_INCLUDE_DIR - The Crypto++ include directory
+#   Crypto++_LIBRARIES - The Crypto++ libraries
 
-find_path(Crypto++_INCLUDE_DIR NAMES cryptopp/cryptlib.h)
-find_library(Crypto++_LIBRARIES NAMES cryptopp libcryptopp)
+find_path(CRYPTOPP_INCLUDE_DIR NAMES cryptopp/cryptlib.h cryptlib.h PATH_SUFFIXES cryptopp crypto++)
+find_library(CRYPTOPP_LIBRARY NAMES cryptopp crypto++)
 
 include(FindPackageHandleStandardArgs)
-FIND_PACKAGE_HANDLE_STANDARD_ARGS(Crypto++ DEFAULT_MSG Crypto++_INCLUDE_DIR Crypto++_LIBRARIES)
+find_package_handle_standard_args(Crypto++ DEFAULT_MSG CRYPTOPP_LIBRARY CRYPTOPP_INCLUDE_DIR)
 
-mark_as_advanced(Crypto++_INCLUDE_DIR Crypto++_LIBRARIES)
+if(CRYPTOPP_FOUND)
+  set(Crypto++_INCLUDE_DIR ${CRYPTOPP_INCLUDE_DIR})
+  set(Crypto++_LIBRARIES ${CRYPTOPP_LIBRARY})
+endif()

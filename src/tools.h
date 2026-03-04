@@ -1,49 +1,67 @@
-// Copyright 2023 The Forgotten Server Authors. All rights reserved.
-// Use of this source code is governed by the GPL-2.0 License that can be found in the LICENSE file.
+/**
+ * The Forgotten Server - a free and open-source MMORPG server emulator
+ * Copyright (C) 2017  Mark Samman <mark.samman@gmail.com>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
 
-#ifndef FS_TOOLS_H
-#define FS_TOOLS_H
-
-#include "const.h"
-#include "enums.h"
-#include "position.h"
+#ifndef FS_TOOLS_H_5F9A9742DA194628830AA1C64909AE43
+#define FS_TOOLS_H_5F9A9742DA194628830AA1C64909AE43
 
 #include <random>
-#include <string_view>
 
-void printXMLError(std::string_view where, std::string_view fileName, const pugi::xml_parse_result& result);
+#include "position.h"
+#include "const.h"
+#include "enums.h"
 
-std::string transformToSHA1(std::string_view input);
-std::string generateToken(const std::string& key, uint32_t ticks);
+void printXMLError(const std::string& where, const std::string& fileName, const pugi::xml_parse_result& result);
 
-// checks that str1 is equivalent to str2 ignoring letter case
-bool caseInsensitiveEqual(std::string_view str1, std::string_view str2);
+std::string transformToSHA1(const std::string& input);
 
-// checks that str1 starts with str2 ignoring letter case
-bool caseInsensitiveStartsWith(std::string_view str, std::string_view prefix);
+void replaceString(std::string& str, const std::string& sought, const std::string& replacement);
+void trim_right(std::string& source, char t);
+void trim_left(std::string& source, char t);
+void toLowerCaseString(std::string& source);
+std::string asLowerCaseString(std::string source);
+std::string asUpperCaseString(std::string source);
 
 using StringVector = std::vector<std::string>;
 using IntegerVector = std::vector<int32_t>;
 
-std::vector<std::string_view> explodeString(std::string_view inString, const std::string& separator,
-                                            int32_t limit = -1);
-IntegerVector vectorAtoi(const std::vector<std::string_view>& stringVector);
-constexpr bool hasBitSet(uint32_t flag, uint32_t flags) { return (flags & flag) != 0; }
+StringVector explodeString(const std::string& inString, const std::string& separator, int32_t limit = -1);
+IntegerVector vectorAtoi(const StringVector& stringVector);
+constexpr bool hasBitSet(uint32_t flag, uint32_t flags) {
+	return (flags & flag) != 0;
+}
 
 std::mt19937& getRandomGenerator();
 int32_t uniform_random(int32_t minNumber, int32_t maxNumber);
 int32_t normal_random(int32_t minNumber, int32_t maxNumber);
 bool boolean_random(double probability = 0.5);
 
+Direction getDirection(const std::string& string);
 Position getNextPosition(Direction direction, Position pos);
-Direction getDirectionTo(const Position& from, const Position& to, bool extended = true);
+Direction getDirectionTo(const Position& from, const Position& to);
 
-std::string getFirstLine(std::string_view str);
-std::string getStringLine(std::string_view str, const int lineNumber);
+std::string getFirstLine(const std::string& str);
 
 std::string formatDate(time_t time);
 std::string formatDateShort(time_t time);
 std::string convertIPToString(uint32_t ip);
+
+void trimString(std::string& str);
 
 MagicEffectClasses getMagicEffect(const std::string& strValue);
 ShootType_t getShootType(const std::string& strValue);
@@ -54,11 +72,11 @@ std::string getCombatName(CombatType_t combatType);
 
 std::string getSkillName(uint8_t skillid);
 
-uint32_t adlerChecksum(const uint8_t* data, size_t length);
+uint32_t adlerChecksum(const uint8_t* data, size_t len);
 
 std::string ucfirst(std::string str);
 std::string ucwords(std::string str);
-bool booleanString(std::string_view str);
+bool booleanString(const std::string& str);
 
 std::string getWeaponName(WeaponType_t weaponType);
 
@@ -68,29 +86,10 @@ CombatType_t indexToCombatType(size_t v);
 uint8_t serverFluidToClient(uint8_t serverFluid);
 uint8_t clientFluidToServer(uint8_t clientFluid);
 
-itemAttrTypes stringToItemAttribute(std::string_view str);
+itemAttrTypes stringToItemAttribute(const std::string& str);
 
-std::string_view getReturnMessage(ReturnValue value);
+const char* getReturnMessage(ReturnValue value);
 
 int64_t OTSYS_TIME();
-int64_t OTSYS_NANOTIME();
-
-SpellGroup_t stringToSpellGroup(std::string_view value);
-
-const std::vector<Direction>& getShuffleDirections();
-
-namespace tfs {
-
-#if __has_cpp_attribute(__cpp_lib_to_underlying)
-
-inline constexpr auto to_underlying(auto e) noexcept { return std::to_underlying(e); }
-
-#else
-
-inline constexpr auto to_underlying(auto e) noexcept { return static_cast<std::underlying_type_t<decltype(e)>>(e); }
-
-#endif
-
-} // namespace tfs
 
 #endif

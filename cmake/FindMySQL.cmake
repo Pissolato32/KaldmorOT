@@ -41,8 +41,7 @@ FIND_PATH(MYSQL_INCLUDE_DIR mysql.h
 		/usr/local/mysql/include
 		/usr/local/mysql/include/mysql
 		$ENV{ProgramFiles}/MySQL/*/include
-		$ENV{SystemDrive}/MySQL/*/include
-		PATH_SUFFIXES mysql)
+		$ENV{SystemDrive}/MySQL/*/include)
 
 #----------------- FIND MYSQL_LIB_DIR -------------------
 IF (WIN32)
@@ -58,8 +57,8 @@ IF (WIN32)
 		ADD_DEFINITIONS(-DDBUG_OFF)
 	ENDIF (CMAKE_BUILD_TYPE STREQUAL Debug)
 
-	FIND_LIBRARY(MYSQL_LIB NAMES mysqlclient libmariadb
-			PATHS
+	FIND_LIBRARY(MYSQL_LIB NAMES mysqlclient
+				 PATHS
 				 $ENV{MYSQL_DIR}/lib/${libsuffixDist}
 				 $ENV{MYSQL_DIR}/libmysql
 				 $ENV{MYSQL_DIR}/libmysql/${libsuffixBuild}
@@ -68,7 +67,7 @@ IF (WIN32)
 				 $ENV{ProgramFiles}/MySQL/*/lib/${libsuffixDist}
 				 $ENV{SystemDrive}/MySQL/*/lib/${libsuffixDist})
 ELSE (WIN32)
-	FIND_LIBRARY(MYSQL_LIB NAMES mysqlclient mariadbclient libmariadb libmariadbclient
+	FIND_LIBRARY(MYSQL_LIB NAMES mysqlclient
 				 PATHS
 				 $ENV{MYSQL_DIR}/libmysql/.libs
 				 $ENV{MYSQL_DIR}/lib
@@ -96,29 +95,24 @@ IF (MYSQL_INCLUDE_DIR AND MYSQL_LIB_DIR)
 	FIND_LIBRARY(MYSQL_ZLIB zlib PATHS ${MYSQL_LIB_DIR})
 	FIND_LIBRARY(MYSQL_YASSL yassl PATHS ${MYSQL_LIB_DIR})
 	FIND_LIBRARY(MYSQL_TAOCRYPT taocrypt PATHS ${MYSQL_LIB_DIR})
-	SET(MYSQL_CLIENT_LIBS ${MYSQL_LIB})
+	SET(MYSQL_CLIENT_LIBS mysqlclient)
 	IF (MYSQL_ZLIB)
-		SET(MYSQL_CLIENT_LIBS ${MYSQL_CLIENT_LIBS} ${MYSQL_ZLIB})
+		SET(MYSQL_CLIENT_LIBS ${MYSQL_CLIENT_LIBS} zlib)
 	ENDIF (MYSQL_ZLIB)
 	IF (MYSQL_YASSL)
-		SET(MYSQL_CLIENT_LIBS ${MYSQL_CLIENT_LIBS} ${MYSQL_YASSL})
+		SET(MYSQL_CLIENT_LIBS ${MYSQL_CLIENT_LIBS} yassl)
 	ENDIF (MYSQL_YASSL)
 	IF (MYSQL_TAOCRYPT)
-		SET(MYSQL_CLIENT_LIBS ${MYSQL_CLIENT_LIBS} ${MYSQL_TAOCRYPT})
+		SET(MYSQL_CLIENT_LIBS ${MYSQL_CLIENT_LIBS} taocrypt)
 	ENDIF (MYSQL_TAOCRYPT)
-	# Add needed mysqlclient dependencies on Windows
+	# Added needed mysqlclient dependencies on Windows
 	IF (WIN32)
 		SET(MYSQL_CLIENT_LIBS ${MYSQL_CLIENT_LIBS} ws2_32)
 	ENDIF (WIN32)
-	IF (APPLE)
-		SET(MYSQL_CLIENT_LIBS ${MYSQL_CLIENT_LIBS} iconv)
-	ENDIF (APPLE)
-	IF (UNIX)
-		SET(MYSQL_CLIENT_LIBS ${MYSQL_CLIENT_LIBS} "-ldl")
-	ENDIF (UNIX)
 
 	MESSAGE(STATUS "MySQL Include dir: ${MYSQL_INCLUDE_DIR}  library dir: ${MYSQL_LIB_DIR}")
 	MESSAGE(STATUS "MySQL client libraries: ${MYSQL_CLIENT_LIBS}")
 ELSE (MYSQL_INCLUDE_DIR AND MYSQL_LIB_DIR)
 	MESSAGE(FATAL_ERROR "Cannot find MySQL. Include dir: ${MYSQL_INCLUDE_DIR}  library dir: ${MYSQL_LIB_DIR}")
 ENDIF (MYSQL_INCLUDE_DIR AND MYSQL_LIB_DIR)
+

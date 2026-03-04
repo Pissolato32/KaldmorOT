@@ -1,17 +1,32 @@
-// Copyright 2023 The Forgotten Server Authors. All rights reserved.
-// Use of this source code is governed by the GPL-2.0 License that can be found in the LICENSE file.
+/**
+ * The Forgotten Server - a free and open-source MMORPG server emulator
+ * Copyright (C) 2017  Mark Samman <mark.samman@gmail.com>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
 
 #include "otpch.h"
 
 #include "housetile.h"
-
-#include "configmanager.h"
-#include "game.h"
 #include "house.h"
+#include "game.h"
 
 extern Game g_game;
 
-HouseTile::HouseTile(uint16_t x, uint16_t y, uint8_t z, House* house) : DynamicTile(x, y, z), house(house) {}
+HouseTile::HouseTile(int32_t x, int32_t y, int32_t z, House* house) :
+	DynamicTile(x, y, z), house(house) {}
 
 void HouseTile::addThing(int32_t index, Thing* thing)
 {
@@ -58,13 +73,8 @@ void HouseTile::updateHouse(Item* item)
 	}
 }
 
-ReturnValue HouseTile::queryAdd(int32_t index, const Thing& thing, uint32_t count, uint32_t flags,
-                                Creature* actor /* = nullptr*/) const
+ReturnValue HouseTile::queryAdd(int32_t index, const Thing& thing, uint32_t count, uint32_t flags, Creature* actor/* = nullptr*/) const
 {
-	if (hasBitSet(FLAG_NOLIMIT, flags)) {
-		return RETURNVALUE_NOERROR;
-	}
-
 	if (const Creature* creature = thing.getCreature()) {
 		if (const Player* player = creature->getPlayer()) {
 			if (!house->isInvited(player)) {
@@ -73,12 +83,10 @@ ReturnValue HouseTile::queryAdd(int32_t index, const Thing& thing, uint32_t coun
 		} else {
 			return RETURNVALUE_NOTPOSSIBLE;
 		}
-	} else if (thing.getItem()) {
-		if (actor) {
-			Player* actorPlayer = actor->getPlayer();
-			if (!house->isInvited(actorPlayer)) {
-				return RETURNVALUE_CANNOTTHROW;
-			}
+	} else if (thing.getItem() && actor) {
+		Player* actorPlayer = actor->getPlayer();
+		if (!house->isInvited(actorPlayer)) {
+			return RETURNVALUE_CANNOTTHROW;
 		}
 	}
 	return Tile::queryAdd(index, thing, count, flags, actor);
@@ -93,8 +101,9 @@ Tile* HouseTile::queryDestination(int32_t& index, const Thing& thing, Item** des
 				Tile* destTile = g_game.map.getTile(entryPos);
 				if (!destTile) {
 					std::cout << "Error: [HouseTile::queryDestination] House entry not correct"
-					          << " - Name: " << house->getName() << " - House id: " << house->getId()
-					          << " - Tile not found: " << entryPos << std::endl;
+							  << " - Name: " << house->getName()
+							  << " - House id: " << house->getId()
+							  << " - Tile not found: " << entryPos << std::endl;
 
 					destTile = g_game.map.getTile(player->getTemplePosition());
 					if (!destTile) {
@@ -110,21 +119,4 @@ Tile* HouseTile::queryDestination(int32_t& index, const Thing& thing, Item** des
 	}
 
 	return Tile::queryDestination(index, thing, destItem, flags);
-}
-
-ReturnValue HouseTile::queryRemove(const Thing& thing, uint32_t count, uint32_t flags,
-                                   Creature* actor /*= nullptr*/) const
-{
-	const Item* item = thing.getItem();
-	if (!item) {
-		return RETURNVALUE_NOTPOSSIBLE;
-	}
-
-	if (actor && getBoolean(ConfigManager::ONLY_INVITED_CAN_MOVE_HOUSE_ITEMS)) {
-		if (!house->isInvited(actor->getPlayer())) {
-			return RETURNVALUE_PLAYERISNOTINVITED;
-		}
-	}
-
-	return Tile::queryRemove(thing, count, flags);
 }

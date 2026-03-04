@@ -1,57 +1,92 @@
-// Copyright 2023 The Forgotten Server Authors. All rights reserved.
-// Use of this source code is governed by the GPL-2.0 License that can be found in the LICENSE file.
+/**
+ * The Forgotten Server - a free and open-source MMORPG server emulator
+ * Copyright (C) 2017  Mark Samman <mark.samman@gmail.com>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
 
 #include "otpch.h"
 
 #include "rsa.h"
 
-#include <openssl/err.h>
-#include <openssl/pem.h>
-#include <openssl/rsa.h>
-
-namespace {
-
-struct Deleter
+RSA::RSA()
 {
-	void operator()(BIO* bio) const { BIO_free(bio); }
-	void operator()(EVP_PKEY* pkey) const { EVP_PKEY_free(pkey); }
-	void operator()(EVP_PKEY_CTX* ctx) const { EVP_PKEY_CTX_free(ctx); }
-};
-
-template <class T>
-using C_ptr = std::unique_ptr<T, Deleter>;
-
-C_ptr<EVP_PKEY> pkey = nullptr;
-
-} // namespace
-
-namespace tfs::rsa {
-
-void decrypt(uint8_t* msg, size_t len)
-{
-	C_ptr<EVP_PKEY_CTX> pctx{EVP_PKEY_CTX_new_from_pkey(nullptr, pkey.get(), nullptr)};
-	EVP_PKEY_decrypt_init(pctx.get());
-	EVP_PKEY_CTX_set_rsa_padding(pctx.get(), RSA_NO_PADDING);
-
-	EVP_PKEY_decrypt(pctx.get(), msg, &len, msg, len);
+	mpz_init(n);
+	mpz_init2(d, 1024);
 }
 
-EVP_PKEY* loadPEM(std::string_view pem)
+RSA::~RSA()
 {
-	C_ptr<BIO> bio{BIO_new(BIO_s_mem())};
-	if (!BIO_write(bio.get(), pem.data(), pem.size())) {
-		throw std::runtime_error(
-		    fmt::format("Error while reading PEM data: {}", ERR_error_string(ERR_get_error(), nullptr)));
-	}
-
-	EVP_PKEY* pkey_ = nullptr;
-	if (!PEM_read_bio_PrivateKey(bio.get(), &pkey_, nullptr, nullptr)) {
-		throw std::runtime_error(
-		    fmt::format("Error while reading private key: {}", ERR_error_string(ERR_get_error(), nullptr)));
-	}
-
-	pkey.reset(pkey_);
-	return pkey_;
+	mpz_clear(n);
+	mpz_clear(d);
 }
 
-} // namespace tfs::rsa
+void RSA::setKey(const char* pString, const char* qString)
+{
+	mpz_t p, q, e;
+	mpz_init2(p, 1024);
+	mpz_init2(q, 1024);
+	mpz_init(e);
+
+	mpz_set_str(p, pString, 10);
+	mpz_set_str(q, qString, 10);
+
+	// e = 65537
+	mpz_set_ui(e, 65537);
+
+	// n = p * q
+	mpz_mul(n, p, q);
+
+	mpz_t p_1, q_1, pq_1;
+	mpz_init2(p_1, 1024);
+	mpz_init2(q_1, 1024);
+	mpz_init2(pq_1, 1024);
+
+	mpz_sub_ui(p_1, p, 1);
+	mpz_sub_ui(q_1, q, 1);
+
+	// pq_1 = (p -1)(q - 1)
+	mpz_mul(pq_1, p_1, q_1);
+
+	// d = e^-1 mod (p - 1)(q - 1)
+	mpz_invert(d, e, pq_1);
+
+	mpz_clear(p_1);
+	mpz_clear(q_1);
+	mpz_clear(pq_1);
+
+	mpz_clear(p);
+	mpz_clear(q);
+	mpz_clear(e);
+}
+
+void RSA::decrypt(char* msg) const
+{
+	mpz_t c, m;
+	mpz_init2(c, 1024);
+	mpz_init2(m, 1024);
+
+	mpz_import(c, 128, 1, 1, 0, 0, msg);
+
+	// m = c^d mod n
+	mpz_powm(m, c, d, n);
+
+	size_t count = (mpz_sizeinbase(m, 2) + 7) / 8;
+	memset(msg, 0, 128 - count);
+	mpz_export(msg + (128 - count), nullptr, 1, 1, 0, 0, m);
+
+	mpz_clear(c);
+	mpz_clear(m);
+}

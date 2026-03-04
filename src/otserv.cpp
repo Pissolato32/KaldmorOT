@@ -1,110 +1,158 @@
-// Copyright 2023 The Forgotten Server Authors. All rights reserved.
-// Use of this source code is governed by the GPL-2.0 License that can be found in the LICENSE file.
+/**
+ * The Forgotten Server - a free and open-source MMORPG server emulator
+ * Copyright (C) 2017  Mark Samman <mark.samman@gmail.com>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
 
 #include "otpch.h"
 
-#include "otserv.h"
-
-#include "configmanager.h"
-#include "databasemanager.h"
-#include "databasetasks.h"
-#include "game.h"
-#include "protocollogin.h"
-#include "protocolold.h"
-#include "protocolstatus.h"
-#include "rsa.h"
-#include "scheduler.h"
-#include "script.h"
-#include "scriptmanager.h"
 #include "server.h"
 
-#include <fmt/format.h>
-#include <fstream>
-#if __has_include("gitmetadata.h")
-#include "gitmetadata.h"
-#endif
+#include "game.h"
+
+#include "configmanager.h"
+#include "scriptmanager.h"
+#include "rsa.h"
+#include "protocolspectator.h"
+
+#include "protocolold.h"
+#include "protocollogin.h"
+#include "protocolstatus.h"
+#include "databasemanager.h"
+#include "scheduler.h"
+#include "databasetasks.h"
 
 DatabaseTasks g_databaseTasks;
 Dispatcher g_dispatcher;
 Scheduler g_scheduler;
 
+IPList serverIPs;
+
 Game g_game;
+ConfigManager g_config;
 Monsters g_monsters;
 Vocations g_vocations;
-extern Scripts* g_scripts;
+RSA g_RSA;
 
 std::mutex g_loaderLock;
 std::condition_variable g_loaderSignal;
 std::unique_lock<std::mutex> g_loaderUniqueLock(g_loaderLock);
 
-namespace {
-
-void startupErrorMessage(std::string_view errorStr)
+void startupErrorMessage(const std::string& errorStr)
 {
 	std::cout << "> ERROR: " << errorStr << std::endl;
 	g_loaderSignal.notify_all();
 }
 
-void mainLoader(ServiceManager* services)
+void mainLoader(int argc, char* argv[], ServiceManager* servicer);
+
+void badAllocationHandler()
 {
-	// dispatcher thread
+	// Use functions that only use stack allocation
+	puts("Allocation failed, server out of memory.\nDecrease the size of your map or compile in 64 bits mode.\n");
+	getchar();
+	exit(-1);
+}
+
+int main(int argc, char* argv[])
+{
+	// Setup bad allocation handler
+	std::set_new_handler(badAllocationHandler);
+
+	ServiceManager serviceManager;
+
+	g_dispatcher.start();
+	g_scheduler.start();
+
+	g_dispatcher.addTask(createTask(std::bind(mainLoader, argc, argv, &serviceManager)));
+
+	g_loaderSignal.wait(g_loaderUniqueLock);
+
+	if (serviceManager.is_running()) {
+		std::cout << ">> " << g_config.getString(ConfigManager::SERVER_NAME) << " Server Online!" << std::endl << std::endl;
+		serviceManager.run();
+	} else {
+		std::cout << ">> No services running. The server is NOT online." << std::endl;
+		g_scheduler.shutdown();
+		g_databaseTasks.shutdown();
+		g_dispatcher.shutdown();
+	}
+
+	g_scheduler.join();
+	g_databaseTasks.join();
+	g_dispatcher.join();
+	return 0;
+}
+
+void mainLoader(int argc, char* argv[], ServiceManager* services)
+{
+	//dispatcher thread
 	g_game.setGameState(GAME_STATE_STARTUP);
 
 	srand(static_cast<unsigned int>(OTSYS_TIME()));
 #ifdef _WIN32
 	SetConsoleTitle(STATUS_SERVER_NAME);
-
-	// fixes a problem with escape characters not being processed in Windows consoles
-	HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
-	DWORD dwMode = 0;
-	GetConsoleMode(hOut, &dwMode);
-	dwMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
-	SetConsoleMode(hOut, dwMode);
 #endif
+	std::cout << "The " << STATUS_SERVER_NAME << " Global - Version: (" << STATUS_SERVER_VERSION << "." << MINOR_VERSION << " . " << REVISION_VERSION << ") - Codename: ( " << SOFTWARE_CODENAME << " )" << std::endl;
+	std::cout << "Compiled with: " << BOOST_COMPILER << std::endl;
+	std::cout << "Compiled on " << __DATE__ << ' ' << __TIME__ << " for platform ";
 
-	printServerVersion();
+#if defined(__amd64__) || defined(_M_X64)
+	std::cout << "x64" << std::endl;
+#elif defined(__i386__) || defined(_M_IX86) || defined(_X86_)
+	std::cout << "x86" << std::endl;
+#elif defined(__arm__)
+	std::cout << "ARM" << std::endl;
+#else
+	std::cout << "unknown" << std::endl;
+#endif
+	std::cout << std::endl;
 
-	// check if config.lua or config.lua.dist exist
-	auto configFile = getString(ConfigManager::CONFIG_FILE);
-	std::ifstream c_test(fmt::format("./{}", configFile));
-	if (!c_test.is_open()) {
-		std::ifstream config_lua_dist("./config.lua.dist");
-		if (config_lua_dist.is_open()) {
-			std::cout << ">> copying config.lua.dist to " << configFile << std::endl;
-			std::ofstream config_lua(std::string{configFile});
-			config_lua << config_lua_dist.rdbuf();
-			config_lua.close();
-			config_lua_dist.close();
+	std::cout << "" << STATUS_SERVER_DEVELOPERS << "." << std::endl;
+	std::cout << "" << GIT_REPO <<"." << std::endl;
+	std::cout << std::endl;
+
+	// TODO: dirty for now; Use stdarg;
+	if (argc > 1) {
+		std::string param = { argv[1] };
+		if (param == "-c") {
+			g_config.setConfigFileLua(argv[2]);
 		}
-	} else {
-		c_test.close();
 	}
 
 	// read global config
-	std::cout << ">> Loading config" << std::endl;
-	if (!ConfigManager::load()) {
-		startupErrorMessage(fmt::format("Unable to load {}!", configFile));
+	std::cout << ">> Loading config: " << g_config.getConfigFileLua() << std::endl;
+	if (!g_config.load()) {
+		startupErrorMessage("Unable to load Config File!");
 		return;
 	}
 
 #ifdef _WIN32
-	auto defaultPriority = getString(ConfigManager::DEFAULT_PRIORITY);
-	if (caseInsensitiveEqual(defaultPriority, "high")) {
+	const std::string& defaultPriority = g_config.getString(ConfigManager::DEFAULT_PRIORITY);
+	if (strcasecmp(defaultPriority.c_str(), "high") == 0) {
 		SetPriorityClass(GetCurrentProcess(), HIGH_PRIORITY_CLASS);
-	} else if (caseInsensitiveEqual(defaultPriority, "above-normal")) {
+	} else if (strcasecmp(defaultPriority.c_str(), "above-normal") == 0) {
 		SetPriorityClass(GetCurrentProcess(), ABOVE_NORMAL_PRIORITY_CLASS);
 	}
 #endif
 
-	// set RSA key
-	try {
-		std::ifstream key{"key.pem"};
-		std::string pem{std::istreambuf_iterator<char>{key}, std::istreambuf_iterator<char>{}};
-		tfs::rsa::loadPEM(pem);
-	} catch (const std::exception& e) {
-		startupErrorMessage(e.what());
-		return;
-	}
+	//set RSA key
+	const char* p("14299623962416399520070177382898895550795403345466153217470516082934737582776038882967213386204600674145392845853859217990626450972452084065728686565928113");
+	const char* q("7630979195970404721891201847792002125535401292779123937207447574596692788513647179235335529307251350570728407373705564708871762033017096809910315212884101");
+	g_RSA.setKey(p, q);
 
 	std::cout << ">> Establishing database connection..." << std::flush;
 
@@ -119,19 +167,18 @@ void mainLoader(ServiceManager* services)
 	std::cout << ">> Running database manager" << std::endl;
 
 	if (!DatabaseManager::isDatabaseSetup()) {
-		startupErrorMessage(
-		    "The database you have specified in config.lua is empty, please import the schema.sql to your database.");
+		startupErrorMessage("The database you have specified in config lua file is empty, please import the schema.sql to your database.");
 		return;
 	}
 	g_databaseTasks.start();
 
 	DatabaseManager::updateDatabase();
 
-	if (getBoolean(ConfigManager::OPTIMIZE_DATABASE) && !DatabaseManager::optimizeTables()) {
+	if (g_config.getBoolean(ConfigManager::OPTIMIZE_DATABASE) && !DatabaseManager::optimizeTables()) {
 		std::cout << "> No tables were optimized." << std::endl;
 	}
 
-	// load vocations
+	//load vocations
 	std::cout << ">> Loading vocations" << std::endl;
 	if (!g_vocations.loadFromXml()) {
 		startupErrorMessage("Unable to load vocations!");
@@ -139,14 +186,11 @@ void mainLoader(ServiceManager* services)
 	}
 
 	// load item data
-	std::cout << ">> Loading items... ";
-	if (!Item::items.loadFromOtb("data/items/items.otb")) {
+	std::cout << ">> Loading items" << std::endl;
+	if (Item::items.loadFromOtb("data/items/items.otb") != ERROR_NONE) {
 		startupErrorMessage("Unable to load items (OTB)!");
 		return;
 	}
-	std::cout << fmt::format("OTB v{:d}.{:d}.{:d}", Item::items.majorVersion, Item::items.minorVersion,
-	                         Item::items.buildNumber)
-	          << std::endl;
 
 	if (!Item::items.loadFromXml()) {
 		startupErrorMessage("Unable to load items (XML)!");
@@ -159,21 +203,9 @@ void mainLoader(ServiceManager* services)
 		return;
 	}
 
-	std::cout << ">> Loading lua scripts" << std::endl;
-	if (!g_scripts->loadScripts("scripts", false, false)) {
-		startupErrorMessage("Failed to load lua scripts");
-		return;
-	}
-
 	std::cout << ">> Loading monsters" << std::endl;
 	if (!g_monsters.loadFromXml()) {
 		startupErrorMessage("Unable to load monsters!");
-		return;
-	}
-
-	std::cout << ">> Loading lua monsters" << std::endl;
-	if (!g_scripts->loadScripts("monster", false, false)) {
-		startupErrorMessage("Failed to load lua monsters");
 		return;
 	}
 
@@ -184,7 +216,7 @@ void mainLoader(ServiceManager* services)
 	}
 
 	std::cout << ">> Checking world type... " << std::flush;
-	auto worldType = boost::algorithm::to_lower_copy<std::string>(std::string{getString(ConfigManager::WORLD_TYPE)});
+	std::string worldType = asLowerCaseString(g_config.getString(ConfigManager::WORLD_TYPE));
 	if (worldType == "pvp") {
 		g_game.setWorldType(WORLD_TYPE_PVP);
 	} else if (worldType == "no-pvp") {
@@ -193,15 +225,16 @@ void mainLoader(ServiceManager* services)
 		g_game.setWorldType(WORLD_TYPE_PVP_ENFORCED);
 	} else {
 		std::cout << std::endl;
-		startupErrorMessage(
-		    fmt::format("Unknown world type: {:s}, valid world types are: pvp, no-pvp and pvp-enforced.",
-		                getString(ConfigManager::WORLD_TYPE)));
+
+		std::ostringstream ss;
+		ss << "> ERROR: Unknown world type: " << g_config.getString(ConfigManager::WORLD_TYPE) << ", valid world types are: pvp, no-pvp and pvp-enforced.";
+		startupErrorMessage(ss.str());
 		return;
 	}
-	std::cout << boost::algorithm::to_upper_copy(worldType) << std::endl;
+	std::cout << asUpperCaseString(worldType) << std::endl;
 
 	std::cout << ">> Loading map" << std::endl;
-	if (!g_game.loadMainMap(std::string{getString(ConfigManager::MAP_NAME)})) {
+	if (!g_game.loadMainMap(g_config.getString(ConfigManager::MAP_NAME))) {
 		startupErrorMessage("Failed to load map");
 		return;
 	}
@@ -210,18 +243,23 @@ void mainLoader(ServiceManager* services)
 	g_game.setGameState(GAME_STATE_INIT);
 
 	// Game client protocols
-	services->add<ProtocolGame>(static_cast<uint16_t>(getInteger(ConfigManager::GAME_PORT)));
-	services->add<ProtocolLogin>(static_cast<uint16_t>(getInteger(ConfigManager::LOGIN_PORT)));
+	services->add<ProtocolGame>(g_config.getNumber(ConfigManager::GAME_PORT));
+	
+	if (g_config.getBoolean(ConfigManager::ENABLE_LIVE_CASTING)) {
+		ProtocolGame::clearLiveCastInfo();
+		//services->add<ProtocolSpectator>(g_config.getNumber(ConfigManager::LIVE_CAST_PORT));
+	}
+	
+	services->add<ProtocolLogin>(g_config.getNumber(ConfigManager::LOGIN_PORT));
 
 	// OT protocols
-	services->add<ProtocolStatus>(static_cast<uint16_t>(getInteger(ConfigManager::STATUS_PORT)));
+	services->add<ProtocolStatus>(g_config.getNumber(ConfigManager::STATUS_PORT));
 
 	// Legacy login protocol
-	services->add<ProtocolOld>(static_cast<uint16_t>(getInteger(ConfigManager::LOGIN_PORT)));
+	services->add<ProtocolOld>(g_config.getNumber(ConfigManager::LOGIN_PORT));
 
 	RentPeriod_t rentPeriod;
-	auto strRentPeriod =
-	    boost::algorithm::to_lower_copy<std::string>(std::string{getString(ConfigManager::HOUSE_RENT_PERIOD)});
+	std::string strRentPeriod = asLowerCaseString(g_config.getString(ConfigManager::HOUSE_RENT_PERIOD));
 
 	if (strRentPeriod == "yearly") {
 		rentPeriod = RENTPERIOD_YEARLY;
@@ -239,94 +277,50 @@ void mainLoader(ServiceManager* services)
 
 	std::cout << ">> Loaded all modules, server starting up..." << std::endl;
 
+	std::pair<uint32_t, uint32_t> IpNetMask;
+	IpNetMask.first = inet_addr("127.0.0.1");
+	IpNetMask.second = 0xFFFFFFFF;
+	serverIPs.push_back(IpNetMask);
+
+	char szHostName[128];
+	if (gethostname(szHostName, 128) == 0) {
+		hostent *he = gethostbyname(szHostName);
+		if (he) {
+			unsigned char** addr = (unsigned char**)he->h_addr_list;
+			while (addr[0] != nullptr) {
+				IpNetMask.first = *(uint32_t*)(*addr);
+				IpNetMask.second = 0x0000FFFF;
+				serverIPs.push_back(IpNetMask);
+				addr++;
+			}
+		}
+	}
+
+	std::string ip;
+	ip = g_config.getString(ConfigManager::IP);
+
+	uint32_t resolvedIp = inet_addr(ip.c_str());
+	if (resolvedIp == INADDR_NONE) {
+		struct hostent* he = gethostbyname(ip.c_str());
+		if (he != 0) {
+			resolvedIp = *(uint32_t*)he->h_addr;
+		} else {
+			std::cout << "ERROR: Cannot resolve " << ip << "!" << std::endl;
+			startupErrorMessage("");
+		}
+	}
+
+	IpNetMask.first = resolvedIp;
+	IpNetMask.second = 0;
+	serverIPs.push_back(IpNetMask);
+
 #ifndef _WIN32
 	if (getuid() == 0 || geteuid() == 0) {
-		std::cout << "> Warning: " << STATUS_SERVER_NAME
-		          << " has been executed as root user, please consider running it as a normal user." << std::endl;
+		std::cout << "> Warning: " << STATUS_SERVER_NAME << " has been executed as root user, please consider running it as a normal user." << std::endl;
 	}
 #endif
 
 	g_game.start(services);
 	g_game.setGameState(GAME_STATE_NORMAL);
 	g_loaderSignal.notify_all();
-}
-
-[[noreturn]] void badAllocationHandler()
-{
-	// Use functions that only use stack allocation
-	puts("Allocation failed, server out of memory.\nDecrease the size of your map or compile in 64 bits mode.\n");
-	getchar();
-	exit(-1);
-}
-
-} // namespace
-
-void startServer()
-{
-	// Setup bad allocation handler
-	std::set_new_handler(badAllocationHandler);
-
-	ServiceManager serviceManager;
-
-	g_dispatcher.start();
-	g_scheduler.start();
-
-	g_dispatcher.addTask([=, services = &serviceManager]() { mainLoader(services); });
-
-	g_loaderSignal.wait(g_loaderUniqueLock);
-
-	if (serviceManager.is_running()) {
-		std::cout << ">> " << getString(ConfigManager::SERVER_NAME) << " Server Online!" << std::endl << std::endl;
-		serviceManager.run();
-	} else {
-		std::cout << ">> No services running. The server is NOT online." << std::endl;
-		g_scheduler.shutdown();
-		g_databaseTasks.shutdown();
-		g_dispatcher.shutdown();
-	}
-
-	g_scheduler.join();
-	g_databaseTasks.join();
-	g_dispatcher.join();
-}
-
-void printServerVersion()
-{
-#if defined(GIT_RETRIEVED_STATE) && GIT_RETRIEVED_STATE
-	std::cout << STATUS_SERVER_NAME << " - Version " << GIT_DESCRIBE << std::endl;
-	std::cout << "Git SHA1 " << GIT_SHORT_SHA1 << " dated " << GIT_COMMIT_DATE_ISO8601 << std::endl;
-#if GIT_IS_DIRTY
-	std::cout << "*** DIRTY - NOT OFFICIAL RELEASE ***" << std::endl;
-#endif
-#else
-	std::cout << STATUS_SERVER_NAME << " - Version " << STATUS_SERVER_VERSION << std::endl;
-#endif
-	std::cout << std::endl;
-
-	std::cout << "Compiled with " << BOOST_COMPILER << std::endl;
-	std::cout << "Compiled on " << __DATE__ << ' ' << __TIME__ << " for platform ";
-#if defined(__amd64__) || defined(_M_X64)
-	std::cout << "x64" << std::endl;
-#elif defined(__i386__) || defined(_M_IX86) || defined(_X86_)
-	std::cout << "x86" << std::endl;
-#elif defined(__arm__)
-	std::cout << "ARM" << std::endl;
-#else
-	std::cout << "unknown" << std::endl;
-#endif
-#if defined(LUAJIT_VERSION)
-	std::cout << "Linked with " << LUAJIT_VERSION << " for Lua support" << std::endl;
-#else
-	std::cout << "Linked with " << LUA_RELEASE << " for Lua support" << std::endl;
-#endif
-	std::cout << std::endl;
-
-	std::cout << "A server developed by " << STATUS_SERVER_DEVELOPERS << std::endl;
-	std::cout << "Downgraded and further developed by Nekiro / MillhioreBT" << std::endl;
-	std::cout << "Visit our forum for updates, support, and resources: http://otland.net/." << std::endl;
-	std::cout << std::endl;
-
-	std::cout << "Repository: " << fmt::format(fg(fmt::color::floral_white), "{}", STATUS_SERVER_REPOSITORY)
-	          << std::endl;
-	std::cout << std::endl;
 }

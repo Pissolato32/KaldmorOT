@@ -1,5 +1,21 @@
-// Copyright 2023 The Forgotten Server Authors. All rights reserved.
-// Use of this source code is governed by the GPL-2.0 License that can be found in the LICENSE file.
+/**
+ * The Forgotten Server - a free and open-source MMORPG server emulator
+ * Copyright (C) 2017  Mark Samman <mark.samman@gmail.com>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
 
 #include "otpch.h"
 
@@ -17,7 +33,7 @@ bool Outfits::loadFromXml()
 		return false;
 	}
 
-	for (auto& outfitNode : doc.child("outfits").children()) {
+	for (auto outfitNode : doc.child("outfits").children()) {
 		pugi::xml_attribute attr;
 		if ((attr = outfitNode.attribute("enabled")) && !attr.as_bool()) {
 			continue;
@@ -40,32 +56,22 @@ bool Outfits::loadFromXml()
 			continue;
 		}
 
-		const auto lookType = pugi::cast<uint16_t>(lookTypeAttribute.value());
-		outfits.emplace(std::piecewise_construct, std::forward_as_tuple(lookType),
-		                std::forward_as_tuple(outfitNode.attribute("name").as_string(), lookType,
-		                                      static_cast<PlayerSex_t>(type), outfitNode.attribute("premium").as_bool(),
-		                                      outfitNode.attribute("unlocked").as_bool(true)));
+		outfits[type].emplace_back(
+			outfitNode.attribute("name").as_string(),
+			pugi::cast<uint16_t>(lookTypeAttribute.value()),
+			outfitNode.attribute("premium").as_bool(),
+			outfitNode.attribute("unlocked").as_bool(true)
+		);
 	}
 	return true;
 }
 
-const Outfit* Outfits::getOutfitByLookType(uint16_t lookType) const
+const Outfit* Outfits::getOutfitByLookType(PlayerSex_t sex, uint16_t lookType) const
 {
-	auto it = outfits.find(lookType);
-	if (it != outfits.end()) {
-		return &it->second;
-	}
-	return nullptr;
-}
-
-const std::vector<const Outfit*> Outfits::getOutfits(PlayerSex_t sex) const
-{
-	std::vector<const Outfit*> sexOutfits;
-	for (const auto& it : outfits) {
-		if (it.second.sex == sex) {
-			sexOutfits.push_back(&it.second);
+	for (const Outfit& outfit : outfits[sex]) {
+		if (outfit.lookType == lookType) {
+			return &outfit;
 		}
 	}
-
-	return sexOutfits;
+	return nullptr;
 }

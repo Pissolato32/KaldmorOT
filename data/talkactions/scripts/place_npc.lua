@@ -1,7 +1,15 @@
 function onSay(player, words, param)
+	if not player:getGroup():getAccess() then
+		return true
+	end
+
+	if player:getAccountType() < ACCOUNT_TYPE_GOD then
+		return false
+	end
+
 	local position = player:getPosition()
 	local npc = Game.createNpc(param, position)
-	if npc then
+	if npc ~= nil then
 		npc:setMasterPos(position)
 		position:sendMagicEffect(CONST_ME_MAGIC_RED)
 	else

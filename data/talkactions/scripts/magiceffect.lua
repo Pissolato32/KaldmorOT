@@ -1,8 +1,8 @@
 function onSay(player, words, param)
-	local effect = tonumber(param)
-	if (effect ~= nil and effect > 0) then
-		player:getPosition():sendMagicEffect(effect)
+	if not player:getGroup():getAccess() then
+		return true
 	end
 
+	player:getPosition():sendMagicEffect(tonumber(param))
 	return false
 end
