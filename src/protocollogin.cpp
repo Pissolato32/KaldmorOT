@@ -47,14 +47,10 @@ void ProtocolLogin::disconnectClient(const std::string& message)
 
 void ProtocolLogin::getCastingStreamsList()
 {
-	uint32_t serverIp = serverIPs[0].first;
+	// FIX 🔵: serverIPs could theoretically be empty during abnormal startup.
+	// Accessing index [0] on an empty vector is undefined behavior (crash).
+	uint32_t serverIp = serverIPs.empty() ? 0 : serverIPs[0].first;
 	for (uint32_t i = 0; i < serverIPs.size(); i++) {
-		if ((serverIPs[i].first & serverIPs[i].second) == (getConnection()->getIP() & serverIPs[i].second)) {
-			serverIp = serverIPs[i].first;
-			break;
-		}
-	}	
-	auto output = OutputMessagePool::getOutputMessage();
 	
 	const std::string& motd = g_config.getString(ConfigManager::MOTD);
 	if (!motd.empty()) {
@@ -88,7 +84,9 @@ void ProtocolLogin::getCastingStreamsList()
 
 void ProtocolLogin::getCharacterList(const std::string& accountName, const std::string& password)
 {
-	uint32_t serverIp = serverIPs[0].first;
+	// FIX 🔵: Same guard as getCastingStreamsList — serverIPs must not be
+	// accessed at index [0] without checking it's non-empty first.
+	uint32_t serverIp = serverIPs.empty() ? 0 : serverIPs[0].first;
 	for (uint32_t i = 0; i < serverIPs.size(); i++) {
 		if ((serverIPs[i].first & serverIPs[i].second) == (getConnection()->getIP() & serverIPs[i].second)) {
 			serverIp = serverIPs[i].first;

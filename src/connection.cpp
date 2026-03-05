@@ -275,7 +275,11 @@ void Connection::internalSend(const OutputMessage_ptr& msg)
 
 uint32_t Connection::getIP()
 {
-	// std::lock_guard<std::recursive_mutex> lockClass(connectionLock); /* try with it */
+	// FIX 🔴: Lock was commented out, leaving socket access unprotected in
+	// multi-threaded context. If closeSocket() runs on another thread while
+	// getIP() reads remote_endpoint(), it accesses a closed/invalid socket —
+	// undefined behavior and potential crash. Lock must always be held here.
+	std::lock_guard<std::recursive_mutex> lockClass(connectionLock);
 
 	// IP-address is expressed in network byte order
 	boost::system::error_code error;
@@ -293,6 +297,7 @@ void Connection::dispatchBroadcastMessage(const OutputMessage_ptr& msg)
 	msgCopy->append(msg);
 	socket.get_io_service().dispatch(std::bind(&Connection::broadcastMessage, shared_from_this(), msgCopy));
 }
+
 void Connection::broadcastMessage(OutputMessage_ptr msg)
 {
 	std::lock_guard<std::recursive_mutex> lockClass(connectionLock);

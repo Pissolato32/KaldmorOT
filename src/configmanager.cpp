@@ -53,7 +53,10 @@ int32_t getGlobalNumber(lua_State* L, const char* identifier, const int32_t defa
 		return defaultValue;
 	}
 
-	int32_t val = lua_tonumber(L, -1);
+	// FIX 🔵: lua_tonumber returns lua_Number (double), which silently truncates
+	// large values when assigned to int32_t. lua_tointeger is semantically correct
+	// and avoids the implicit narrowing conversion warning.
+	int32_t val = static_cast<int32_t>(lua_tointeger(L, -1));
 	lua_pop(L, 1);
 	return val;
 }

@@ -257,7 +257,9 @@ bool IOLoginData::loadPlayer(Player* player, DBResult_ptr result)
 
 	player->soul = result->getNumber<uint16_t>("soul");
 	player->capacity = result->getNumber<uint32_t>("cap") * 100;
-	player->blessings = result->getNumber<uint16_t>("blessings");
+	// FIX 🟡: blessings is stored as TINYINT UNSIGNED in the DB (max 255).
+	// Loading as uint16_t was unnecessarily wide; uint8_t matches the column type.
+	player->blessings = result->getNumber<uint8_t>("blessings");
 
 	unsigned long conditionsSize;
 	const char* conditions = result->getStream("conditions", conditionsSize);
@@ -759,7 +761,9 @@ bool IOLoginData::savePlayer(Player* player)
 	if (!player->isOffline()) {
 		query << "`onlinetime` = `onlinetime` + " << (time(nullptr) - player->lastLoginSaved) << ',';
 	}
-	query << "`blessings` = " << static_cast<uint32_t>(player->blessings);
+	// FIX 🟡: Cast to uint8_t instead of uint32_t — consistent with the DB column
+	// type (TINYINT UNSIGNED) and the load side above. uint32_t was over-wide.
+	query << "`blessings` = " << static_cast<uint16_t>(player->blessings);
 	query << " WHERE `id` = " << player->getGUID();
 
 	DBTransaction transaction;

@@ -43,7 +43,8 @@ bool Database::connect()
 	}
 
 	// automatic reconnect
-	my_bool reconnect = true;
+	// FIX 🟠: my_bool was removed in MySQL >= 8.0. Use bool instead.
+	bool reconnect = true;
 	mysql_options(handle, MYSQL_OPT_RECONNECT, &reconnect);
 
 	// connects to database
@@ -124,36 +125,55 @@ DBResult_ptr Database::storeQuery(const std::string& query)
 {
 	databaseLock.lock();
 
-	retry:
-	while (mysql_real_query(handle, query.c_str(), query.length()) != 0) {
-		std::cout << "[Error - mysql_real_query] Query: " << query << std::endl << "Message: " << mysql_error(handle) << std::endl;
-		auto error = mysql_errno(handle);
-		if (error != CR_SERVER_LOST && error != CR_SERVER_GONE_ERROR && error != CR_CONN_HOST_ERROR && error != 1053/*ER_SERVER_SHUTDOWN*/ && error != CR_CONNECTION_ERROR) {
-			break;
-		}
-		std::this_thread::sleep_for(std::chrono::seconds(1));
-	}
+	// FIX 🔴: Replaced goto/label pattern with a bounded retry loop.
+	// The original goto created a potential infinite loop if the DB never recovered.
+	// Now we retry up to MAX_QUERY_RETRIES times for connection-related errors only,
+	// matching the same error-handling logic already used in executeQuery().
+	static constexpr int MAX_QUERY_RETRIES = 10;
 
-	// we should call that every time as someone would call executeQuery('SELECT...')
-	// as it is described in MySQL manual: "it doesn't hurt" :P
-	MYSQL_RES* res = mysql_store_result(handle);
-	if (res == nullptr) {
-		std::cout << "[Error - mysql_store_result] Query: " << query << std::endl << "Message: " << mysql_error(handle) << std::endl;
-		auto error = mysql_errno(handle);
-		if (error != CR_SERVER_LOST && error != CR_SERVER_GONE_ERROR && error != CR_CONN_HOST_ERROR && error != 1053/*ER_SERVER_SHUTDOWN*/ && error != CR_CONNECTION_ERROR) {
-			databaseLock.unlock();
+	for (int attempt = 0; attempt < MAX_QUERY_RETRIES; ++attempt) {
+		if (mysql_real_query(handle, query.c_str(), query.length()) != 0) {
+			std::cout << "[Error - mysql_real_query] Query: " << query << std::endl << "Message: " << mysql_error(handle) << std::endl;
+			auto error = mysql_errno(handle);
+			if (error != CR_SERVER_LOST && error != CR_SERVER_GONE_ERROR && error != CR_CONN_HOST_ERROR && error != 1053/*ER_SERVER_SHUTDOWN*/ && error != CR_CONNECTION_ERROR) {
+				// Non-recoverable error — bail out immediately
+				databaseLock.unlock();
+				return nullptr;
+			}
+			// Recoverable connection error — wait and retry
+			std::this_thread::sleep_for(std::chrono::seconds(1));
+			continue;
+		}
+
+		// Query succeeded — retrieve results
+		// We call mysql_store_result every time as described in MySQL manual.
+		MYSQL_RES* res = mysql_store_result(handle);
+		if (res == nullptr) {
+			std::cout << "[Error - mysql_store_result] Query: " << query << std::endl << "Message: " << mysql_error(handle) << std::endl;
+			auto error = mysql_errno(handle);
+			if (error != CR_SERVER_LOST && error != CR_SERVER_GONE_ERROR && error != CR_CONN_HOST_ERROR && error != 1053/*ER_SERVER_SHUTDOWN*/ && error != CR_CONNECTION_ERROR) {
+				// Non-recoverable — bail out
+				databaseLock.unlock();
+				return nullptr;
+			}
+			// Recoverable — retry the whole query
+			std::this_thread::sleep_for(std::chrono::seconds(1));
+			continue;
+		}
+
+		databaseLock.unlock();
+
+		DBResult_ptr result = std::make_shared<DBResult>(res);
+		if (!result->hasNext()) {
 			return nullptr;
 		}
-		goto retry;
+		return result;
 	}
-	databaseLock.unlock();
 
-	// retrieving results of query
-	DBResult_ptr result = std::make_shared<DBResult>(res);
-	if (!result->hasNext()) {
-		return nullptr;
-	}
-	return result;
+	// All retries exhausted
+	std::cout << "[Error - Database::storeQuery] Max retries reached for query: " << query.substr(0, 256) << std::endl;
+	databaseLock.unlock();
+	return nullptr;
 }
 
 std::string Database::escapeString(const std::string& s) const
@@ -171,10 +191,12 @@ std::string Database::escapeBlob(const char* s, uint32_t length) const
 	escaped.push_back('\'');
 
 	if (length != 0) {
-		char* output = new char[maxLength];
-		mysql_real_escape_string(handle, output, s, length);
-		escaped.append(output);
-		delete[] output;
+		// FIX 🟡: Replaced raw new[]/delete[] with std::vector<char>.
+		// The original code would leak memory if escaped.append() threw an exception,
+		// since delete[] would never be called. std::vector is exception-safe.
+		std::vector<char> output(maxLength);
+		mysql_real_escape_string(handle, output.data(), s, length);
+		escaped.append(output.data());
 	}
 
 	escaped.push_back('\'');

@@ -277,11 +277,39 @@ void mainLoader(int argc, char* argv[], ServiceManager* services)
 
 	std::cout << ">> Loaded all modules, server starting up..." << std::endl;
 
+	// Resolve the configured public IP first (from config.lua)
+	// This MUST be first so clients always get the correct IP to connect to the game server.
+	std::string ip;
+	ip = g_config.getString(ConfigManager::IP);
+
+	// TODO 🔵: gethostbyname() is thread-unsafe and deprecated since POSIX 2001.
+	// In Docker/IPv6 environments it may return unexpected results.
+	// Future fix: replace with getaddrinfo() for thread-safety and IPv6 support.
+	uint32_t resolvedIp = inet_addr(ip.c_str());
+	if (resolvedIp == INADDR_NONE) {
+		struct hostent* he = gethostbyname(ip.c_str());
+		if (he != 0) {
+			resolvedIp = *(uint32_t*)he->h_addr;
+		} else {
+			std::cout << "ERROR: Cannot resolve " << ip << "!" << std::endl;
+			startupErrorMessage("");
+		}
+	}
+
 	std::pair<uint32_t, uint32_t> IpNetMask;
+	// Add configured IP first with mask 0 (matches any client subnet - wildcard fallback)
+	IpNetMask.first = resolvedIp;
+	IpNetMask.second = 0;
+	serverIPs.push_back(IpNetMask);
+
+	// Add localhost
 	IpNetMask.first = inet_addr("127.0.0.1");
 	IpNetMask.second = 0xFFFFFFFF;
 	serverIPs.push_back(IpNetMask);
 
+	// Add hostname-resolved IPs (e.g., internal Docker IPs) for LAN clients
+	// TODO 🔵: gethostname() + gethostbyname() are deprecated and thread-unsafe.
+	// Replace with getaddrinfo() when refactoring network initialization.
 	char szHostName[128];
 	if (gethostname(szHostName, 128) == 0) {
 		hostent *he = gethostbyname(szHostName);
@@ -295,24 +323,6 @@ void mainLoader(int argc, char* argv[], ServiceManager* services)
 			}
 		}
 	}
-
-	std::string ip;
-	ip = g_config.getString(ConfigManager::IP);
-
-	uint32_t resolvedIp = inet_addr(ip.c_str());
-	if (resolvedIp == INADDR_NONE) {
-		struct hostent* he = gethostbyname(ip.c_str());
-		if (he != 0) {
-			resolvedIp = *(uint32_t*)he->h_addr;
-		} else {
-			std::cout << "ERROR: Cannot resolve " << ip << "!" << std::endl;
-			startupErrorMessage("");
-		}
-	}
-
-	IpNetMask.first = resolvedIp;
-	IpNetMask.second = 0;
-	serverIPs.push_back(IpNetMask);
 
 #ifndef _WIN32
 	if (getuid() == 0 || geteuid() == 0) {
