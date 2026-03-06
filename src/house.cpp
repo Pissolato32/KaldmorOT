@@ -420,7 +420,20 @@ void AccessList::parseList(const std::string& list)
 
 		std::string::size_type at_pos = line.find("@");
 		if (at_pos != std::string::npos) {
-			addGuild(line.substr(at_pos + 1));
+			if (at_pos == 0) {
+				addGuild(line.substr(1));
+			} else {
+				std::string rankName = line.substr(0, at_pos);
+				std::string guildName = line.substr(at_pos + 1);
+				
+				uint32_t guildId = IOGuild::getGuildIdByName(guildName);
+				if (guildId != 0) {
+					uint32_t rankLevel = IOGuild::getRankLevelByName(guildId, rankName);
+					if (rankLevel > 0) {
+						addGuild(guildName, rankLevel);
+					}
+				}
+			}
 		} else if (line.find("!") != std::string::npos || line.find("*") != std::string::npos || line.find("?") != std::string::npos) {
 			addExpression(line);
 		} else {
@@ -442,11 +455,14 @@ void AccessList::addPlayer(const std::string& name)
 	}
 }
 
-void AccessList::addGuild(const std::string& name)
+void AccessList::addGuild(const std::string& name, uint32_t rankLevel /*= 0*/)
 {
 	uint32_t guildId = IOGuild::getGuildIdByName(name);
 	if (guildId != 0) {
-		guildList.insert(guildId);
+		auto it = guildList.find(guildId);
+		if (it == guildList.end() || rankLevel < it->second) {
+			guildList[guildId] = rankLevel;
+		}
 	}
 }
 
@@ -502,7 +518,17 @@ bool AccessList::isInList(const Player* player)
 	}
 
 	const Guild* guild = player->getGuild();
-	return guild && guildList.find(guild->getId()) != guildList.end();
+	if (guild) {
+		auto it = guildList.find(guild->getId());
+		if (it != guildList.end()) {
+			const GuildRank* playerRank = player->getGuildRank();
+			if (playerRank && playerRank->level >= it->second) {
+				return true;
+			}
+		}
+	}
+
+	return false;
 }
 
 void AccessList::getList(std::string& list) const

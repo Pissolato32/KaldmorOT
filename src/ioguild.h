@@ -26,6 +26,7 @@ class IOGuild
 {
 	public:
 		static uint32_t getGuildIdByName(const std::string& name);
+		static uint32_t getRankLevelByName(uint32_t guildId, const std::string& name);
 		static void getWarList(uint32_t guildId, GuildWarVector& guildWarVector);
 };
 

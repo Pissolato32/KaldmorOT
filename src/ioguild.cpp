@@ -36,6 +36,20 @@ uint32_t IOGuild::getGuildIdByName(const std::string& name)
 	return result->getNumber<uint32_t>("id");
 }
 
+uint32_t IOGuild::getRankLevelByName(uint32_t guildId, const std::string& name)
+{
+	Database& db = Database::getInstance();
+
+	std::ostringstream query;
+	query << "SELECT `level` FROM `guild_ranks` WHERE `guild_id` = " << guildId << " AND `name` = " << db.escapeString(name);
+
+	DBResult_ptr result = db.storeQuery(query.str());
+	if (!result) {
+		return 0;
+	}
+	return result->getNumber<uint32_t>("level");
+}
+
 void IOGuild::getWarList(uint32_t guildId, GuildWarVector& guildWarVector)
 {
 	std::ostringstream query;
