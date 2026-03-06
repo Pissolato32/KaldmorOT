@@ -25,6 +25,7 @@
 #include "monster.h"
 #include "pugicast.h"
 #include "spells.h"
+#include "logger.h"
 
 extern Game g_game;
 extern Spells* g_spells;
@@ -140,7 +141,7 @@ bool Spells::registerEvent(Event* event, const pugi::xml_node&)
 	if (instant) {
 		auto result = instants.emplace(instant->getWords(), instant);
 		if (!result.second) {
-			std::cout << "[Warning - Spells::registerEvent] Duplicate registered instant spell with words: " << instant->getWords() << std::endl;
+			Logger::warn() << "[Warning - Spells::registerEvent] Duplicate registered instant spell with words: " << instant->getWords() << std::endl;
 		}
 		return result.second;
 	}
@@ -149,7 +150,7 @@ bool Spells::registerEvent(Event* event, const pugi::xml_node&)
 	if (rune) {
 		auto result = runes.emplace(rune->getRuneItemId(), rune);
 		if (!result.second) {
-			std::cout << "[Warning - Spells::registerEvent] Duplicate registered rune with id: " << rune->getRuneItemId() << std::endl;
+			Logger::warn() << "[Warning - Spells::registerEvent] Duplicate registered rune with id: " << rune->getRuneItemId() << std::endl;
 		}
 		return result.second;
 	}
@@ -342,7 +343,7 @@ bool CombatSpell::executeCastSpell(Creature* creature, const LuaVariant& var)
 {
 	//onCastSpell(creature, var)
 	if (!scriptInterface->reserveScriptEnv()) {
-		std::cout << "[Error - CombatSpell::executeCastSpell] Call stack overflow" << std::endl;
+		Logger::error() << "[Error - CombatSpell::executeCastSpell] Call stack overflow" << std::endl;
 		return false;
 	}
 
@@ -365,7 +366,7 @@ bool Spell::configureSpell(const pugi::xml_node& node)
 {
 	pugi::xml_attribute nameAttribute = node.attribute("name");
 	if (!nameAttribute) {
-		std::cout << "[Error - Spell::configureSpell] Spell without name" << std::endl;
+		Logger::error() << "[Error - Spell::configureSpell] Spell without name" << std::endl;
 		return false;
 	}
 
@@ -401,7 +402,7 @@ bool Spell::configureSpell(const pugi::xml_node& node)
 	//for (size_t i = 0; i < size; ++i) {
 	for (const char* reserved : reservedList) {
 		if (strcasecmp(reserved, name.c_str()) == 0) {
-			std::cout << "[Error - Spell::configureSpell] Spell is using a reserved name: " << reserved << std::endl;
+			Logger::error() << "[Error - Spell::configureSpell] Spell is using a reserved name: " << reserved << std::endl;
 			return false;
 		}
 	}
@@ -510,7 +511,7 @@ bool Spell::configureSpell(const pugi::xml_node& node)
 		} else if (tmpStrValue == "creature") {
 			blockingCreature = true;
 		} else {
-			std::cout << "[Warning - Spell::configureSpell] Blocktype \"" << attr.as_string() << "\" does not exist." << std::endl;
+			Logger::warn() << "[Warning - Spell::configureSpell] Blocktype \"" << attr.as_string() << "\" does not exist." << std::endl;
 		}
 	}
 
@@ -528,7 +529,7 @@ bool Spell::configureSpell(const pugi::xml_node& node)
 			attr = vocationNode.attribute("showInDescription");
 			vocSpellMap[vocationId] = !attr || attr.as_bool();
 		} else {
-			std::cout << "[Warning - Spell::configureSpell] Wrong vocation name: " << attr.as_string() << std::endl;
+			Logger::warn() << "[Warning - Spell::configureSpell] Wrong vocation name: " << attr.as_string() << std::endl;
 		}
 	}
 	return true;
@@ -1105,7 +1106,7 @@ bool InstantSpell::executeCastSpell(Creature* creature, const LuaVariant& var)
 {
 	//onCastSpell(creature, var)
 	if (!scriptInterface->reserveScriptEnv()) {
-		std::cout << "[Error - InstantSpell::executeCastSpell] Call stack overflow" << std::endl;
+		Logger::error() << "[Error - InstantSpell::executeCastSpell] Call stack overflow" << std::endl;
 		return false;
 	}
 
@@ -1251,7 +1252,7 @@ bool RuneSpell::configureEvent(const pugi::xml_node& node)
 
 	pugi::xml_attribute attr;
 	if (!(attr = node.attribute("id"))) {
-		std::cout << "[Error - RuneSpell::configureSpell] Rune spell without id." << std::endl;
+		Logger::error() << "[Error - RuneSpell::configureSpell] Rune spell without id." << std::endl;
 		return false;
 	}
 	runeId = pugi::cast<uint16_t>(attr.value());
@@ -1360,7 +1361,7 @@ bool RuneSpell::loadFunction(const pugi::xml_attribute& attr)
 	} else if (strcasecmp(functionName, "convince") == 0) {
 		runeFunction = Convince;
 	} else {
-		std::cout << "[Warning - RuneSpell::loadFunction] Function \"" << functionName << "\" does not exist." << std::endl;
+		Logger::warn() << "[Warning - RuneSpell::loadFunction] Function \"" << functionName << "\" does not exist." << std::endl;
 		return false;
 	}
 
@@ -1467,7 +1468,7 @@ bool RuneSpell::executeCastSpell(Creature* creature, const LuaVariant& var, bool
 {
 	//onCastSpell(creature, var, isHotkey)
 	if (!scriptInterface->reserveScriptEnv()) {
-		std::cout << "[Error - RuneSpell::executeCastSpell] Call stack overflow" << std::endl;
+		Logger::error() << "[Error - RuneSpell::executeCastSpell] Call stack overflow" << std::endl;
 		return false;
 	}
 

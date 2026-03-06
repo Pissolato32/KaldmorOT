@@ -35,6 +35,7 @@
 #include "ban.h"
 #include "scheduler.h"
 #include "databasetasks.h"
+#include "logger.h"
 
 extern Game g_game;
 extern ConfigManager g_config;
@@ -858,7 +859,7 @@ void ProtocolGame::parsePacket(NetworkMessage& msg)
 		case 0xF3: /* get object info */ break;
 
 		default:
-			// std::cout << "Player: " << player->getName() << " sent an unknown packet header: 0x" << std::hex << static_cast<uint16_t>(recvbyte) << std::dec << "!" << std::endl;
+			// Logger::info() << "Player: " << player->getName() << " sent an unknown packet header: 0x" << std::hex << static_cast<uint16_t>(recvbyte) << std::dec << "!" << std::endl;
 			break;
 	}
 	if (msg.isOverrun()) {

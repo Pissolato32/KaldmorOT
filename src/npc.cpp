@@ -22,6 +22,7 @@
 #include "npc.h"
 #include "game.h"
 #include "pugicast.h"
+#include "logger.h"
 
 extern Game g_game;
 extern LuaEnvironment g_luaEnvironment;
@@ -138,7 +139,7 @@ bool Npc::loadFromXml()
 
 	pugi::xml_node npcNode = doc.child("npc");
 	if (!npcNode) {
-		std::cout << "[Error - Npc::loadFromXml] Missing npc tag in " << filename << std::endl;
+		Logger::error() << "[Error - Npc::loadFromXml] Missing npc tag in " << filename << std::endl;
 		return false;
 	}
 
@@ -588,7 +589,7 @@ bool NpcScriptInterface::loadNpcLib(const std::string& file)
 	}
 
 	if (loadFile(file) == -1) {
-		std::cout << "[Warning - NpcScriptInterface::loadNpcLib] Can not load " << file << std::endl;
+		Logger::warn() << "[Warning - NpcScriptInterface::loadNpcLib] Can not load " << file << std::endl;
 		return false;
 	}
 
@@ -1085,8 +1086,8 @@ NpcEventsHandler::NpcEventsHandler(const std::string& file, Npc* npc) :
 {
 	loaded = scriptInterface->loadFile("data/npc/scripts/" + file, npc) == 0;
 	if (!loaded) {
-		std::cout << "[Warning - NpcScript::NpcScript] Can not load script: " << file << std::endl;
-		std::cout << scriptInterface->getLastLuaError() << std::endl;
+		Logger::warn() << "[Warning - NpcScript::NpcScript] Can not load script: " << file << std::endl;
+		Logger::info() << scriptInterface->getLastLuaError() << std::endl;
 	} else {
 		creatureSayEvent = scriptInterface->getEvent("onCreatureSay");
 		creatureDisappearEvent = scriptInterface->getEvent("onCreatureDisappear");
@@ -1111,7 +1112,7 @@ void NpcEventsHandler::onCreatureAppear(Creature* creature)
 
 	//onCreatureAppear(creature)
 	if (!scriptInterface->reserveScriptEnv()) {
-		std::cout << "[Error - NpcScript::onCreatureAppear] Call stack overflow" << std::endl;
+		Logger::error() << "[Error - NpcScript::onCreatureAppear] Call stack overflow" << std::endl;
 	}
 
 	ScriptEnvironment* env = scriptInterface->getScriptEnv();
@@ -1133,7 +1134,7 @@ void NpcEventsHandler::onCreatureDisappear(Creature* creature)
 
 	//onCreatureDisappear(creature)
 	if (!scriptInterface->reserveScriptEnv()) {
-		std::cout << "[Error - NpcScript::onCreatureDisappear] Call stack overflow" << std::endl;
+		Logger::error() << "[Error - NpcScript::onCreatureDisappear] Call stack overflow" << std::endl;
 		return;
 	}
 
@@ -1156,7 +1157,7 @@ void NpcEventsHandler::onCreatureMove(Creature* creature, const Position& oldPos
 
 	//onCreatureMove(creature, oldPos, newPos)
 	if (!scriptInterface->reserveScriptEnv()) {
-		std::cout << "[Error - NpcScript::onCreatureMove] Call stack overflow" << std::endl;
+		Logger::error() << "[Error - NpcScript::onCreatureMove] Call stack overflow" << std::endl;
 		return;
 	}
 
@@ -1181,7 +1182,7 @@ void NpcEventsHandler::onCreatureSay(Creature* creature, SpeakClasses type, cons
 
 	//onCreatureSay(creature, type, msg)
 	if (!scriptInterface->reserveScriptEnv()) {
-		std::cout << "[Error - NpcScript::onCreatureSay] Call stack overflow" << std::endl;
+		Logger::error() << "[Error - NpcScript::onCreatureSay] Call stack overflow" << std::endl;
 		return;
 	}
 
@@ -1207,7 +1208,7 @@ void NpcEventsHandler::onPlayerTrade(Player* player, int32_t callback, uint16_t 
 
 	//onBuy(player, itemid, count, amount, ignore, inbackpacks)
 	if (!scriptInterface->reserveScriptEnv()) {
-		std::cout << "[Error - NpcScript::onPlayerTrade] Call stack overflow" << std::endl;
+		Logger::error() << "[Error - NpcScript::onPlayerTrade] Call stack overflow" << std::endl;
 		return;
 	}
 
@@ -1235,7 +1236,7 @@ void NpcEventsHandler::onPlayerCloseChannel(Player* player)
 
 	//onPlayerCloseChannel(player)
 	if (!scriptInterface->reserveScriptEnv()) {
-		std::cout << "[Error - NpcScript::onPlayerCloseChannel] Call stack overflow" << std::endl;
+		Logger::error() << "[Error - NpcScript::onPlayerCloseChannel] Call stack overflow" << std::endl;
 		return;
 	}
 
@@ -1258,7 +1259,7 @@ void NpcEventsHandler::onPlayerEndTrade(Player* player)
 
 	//onPlayerEndTrade(player)
 	if (!scriptInterface->reserveScriptEnv()) {
-		std::cout << "[Error - NpcScript::onPlayerEndTrade] Call stack overflow" << std::endl;
+		Logger::error() << "[Error - NpcScript::onPlayerEndTrade] Call stack overflow" << std::endl;
 		return;
 	}
 
@@ -1281,7 +1282,7 @@ void NpcEventsHandler::onThink()
 
 	//onThink()
 	if (!scriptInterface->reserveScriptEnv()) {
-		std::cout << "[Error - NpcScript::onThink] Call stack overflow" << std::endl;
+		Logger::error() << "[Error - NpcScript::onThink] Call stack overflow" << std::endl;
 		return;
 	}
 

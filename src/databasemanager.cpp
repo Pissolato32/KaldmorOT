@@ -22,6 +22,7 @@
 #include "configmanager.h"
 #include "databasemanager.h"
 #include "luascript.h"
+#include "logger.h"
 
 extern ConfigManager g_config;
 
@@ -38,15 +39,15 @@ bool DatabaseManager::optimizeTables()
 
 	do {
 		std::string tableName = result->getString("TABLE_NAME");
-		std::cout << "> Optimizing table " << tableName << "..." << std::flush;
+		Logger::info() << "> Optimizing table " << tableName << "..." << std::flush;
 
 		query.str(std::string());
 		query << "OPTIMIZE TABLE `" << tableName << '`';
 
 		if (db.executeQuery(query.str())) {
-			std::cout << " [success]" << std::endl;
+			Logger::info() << " [success]" << std::endl;
 		} else {
-			std::cout << " [failed]" << std::endl;
+			Logger::info() << " [failed]" << std::endl;
 		}
 	} while (result->next());
 	return true;
@@ -111,7 +112,7 @@ void DatabaseManager::updateDatabase()
 		std::ostringstream ss;
 		ss << "data/migrations/" << version << ".lua";
 		if (luaL_dofile(L, ss.str().c_str()) != 0) {
-			std::cout << "[Error - DatabaseManager::updateDatabase - Version: " << version << "] " << lua_tostring(L, -1) << std::endl;
+			Logger::error() << "[Error - DatabaseManager::updateDatabase - Version: " << version << "] " << lua_tostring(L, -1) << std::endl;
 			break;
 		}
 
@@ -122,7 +123,7 @@ void DatabaseManager::updateDatabase()
 		lua_getglobal(L, "onUpdateDatabase");
 		if (lua_pcall(L, 0, 1, 0) != 0) {
 			LuaScriptInterface::resetScriptEnv();
-			std::cout << "[Error - DatabaseManager::updateDatabase - Version: " << version << "] " << lua_tostring(L, -1) << std::endl;
+			Logger::error() << "[Error - DatabaseManager::updateDatabase - Version: " << version << "] " << lua_tostring(L, -1) << std::endl;
 			break;
 		}
 
@@ -132,7 +133,7 @@ void DatabaseManager::updateDatabase()
 		}
 
 		version++;
-		std::cout << "> Database has been updated to version " << version << '.' << std::endl;
+		Logger::info() << "> Database has been updated to version " << version << '.' << std::endl;
 		registerDatabaseConfig("db_version", version);
 
 		LuaScriptInterface::resetScriptEnv();

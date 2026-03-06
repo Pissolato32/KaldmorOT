@@ -22,6 +22,7 @@
 #include "chat.h"
 #include "player.h"
 #include "pugicast.h"
+#include "logger.h"
 
 extern Chat* g_chat;
 
@@ -131,7 +132,7 @@ bool ChatChannel::executeCanJoinEvent(const Player& player)
 	//canJoin(player)
 	LuaScriptInterface* scriptInterface = g_chat->getScriptInterface();
 	if (!scriptInterface->reserveScriptEnv()) {
-		std::cout << "[Error - CanJoinChannelEvent::execute] Call stack overflow" << std::endl;
+		Logger::error() << "[Error - CanJoinChannelEvent::execute] Call stack overflow" << std::endl;
 		return false;
 	}
 
@@ -156,7 +157,7 @@ bool ChatChannel::executeOnJoinEvent(const Player& player)
 	//onJoin(player)
 	LuaScriptInterface* scriptInterface = g_chat->getScriptInterface();
 	if (!scriptInterface->reserveScriptEnv()) {
-		std::cout << "[Error - OnJoinChannelEvent::execute] Call stack overflow" << std::endl;
+		Logger::error() << "[Error - OnJoinChannelEvent::execute] Call stack overflow" << std::endl;
 		return false;
 	}
 
@@ -181,7 +182,7 @@ bool ChatChannel::executeOnLeaveEvent(const Player& player)
 	//onLeave(player)
 	LuaScriptInterface* scriptInterface = g_chat->getScriptInterface();
 	if (!scriptInterface->reserveScriptEnv()) {
-		std::cout << "[Error - OnLeaveChannelEvent::execute] Call stack overflow" << std::endl;
+		Logger::error() << "[Error - OnLeaveChannelEvent::execute] Call stack overflow" << std::endl;
 		return false;
 	}
 
@@ -206,7 +207,7 @@ bool ChatChannel::executeOnSpeakEvent(const Player& player, SpeakClasses& type, 
 	//onSpeak(player, type, message)
 	LuaScriptInterface* scriptInterface = g_chat->getScriptInterface();
 	if (!scriptInterface->reserveScriptEnv()) {
-		std::cout << "[Error - OnSpeakChannelEvent::execute] Call stack overflow" << std::endl;
+		Logger::error() << "[Error - OnSpeakChannelEvent::execute] Call stack overflow" << std::endl;
 		return false;
 	}
 
@@ -282,7 +283,7 @@ bool Chat::load()
 				channel.onJoinEvent = scriptInterface.getEvent("onJoin");
 				channel.onLeaveEvent = scriptInterface.getEvent("onLeave");
 			} else {
-				std::cout << "[Warning - Chat::load] Can not load script: " << scriptAttribute.as_string() << std::endl;
+				Logger::warn() << "[Warning - Chat::load] Can not load script: " << scriptAttribute.as_string() << std::endl;
 			}
 		}
 

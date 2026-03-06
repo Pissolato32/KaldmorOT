@@ -27,6 +27,7 @@
 #include "pugicast.h"
 #include "spells.h"
 #include "rewardchest.h"
+#include "logger.h"
 
 extern Game g_game;
 extern Spells* g_spells;
@@ -95,13 +96,13 @@ bool Actions::registerEvent(Event* event, const pugi::xml_node& node)
 
 		auto result = useItemMap.emplace(id, action);
 		if (!result.second) {
-			std::cout << "[Warning - Actions::registerEvent] Duplicate registered item with id: " << id << std::endl;
+			Logger::warn() << "[Warning - Actions::registerEvent] Duplicate registered item with id: " << id << std::endl;
 		}
 		return result.second;
 	} else if ((attr = node.attribute("fromid"))) {
 		pugi::xml_attribute toIdAttribute = node.attribute("toid");
 		if (!toIdAttribute) {
-			std::cout << "[Warning - Actions::registerEvent] Missing toid in fromid: " << attr.as_string() << std::endl;
+			Logger::warn() << "[Warning - Actions::registerEvent] Missing toid in fromid: " << attr.as_string() << std::endl;
 			return false;
 		}
 
@@ -111,14 +112,14 @@ bool Actions::registerEvent(Event* event, const pugi::xml_node& node)
 
 		auto result = useItemMap.emplace(iterId, action);
 		if (!result.second) {
-			std::cout << "[Warning - Actions::registerEvent] Duplicate registered item with id: " << iterId << " in fromid: " << fromId << ", toid: " << toId << std::endl;
+			Logger::warn() << "[Warning - Actions::registerEvent] Duplicate registered item with id: " << iterId << " in fromid: " << fromId << ", toid: " << toId << std::endl;
 		}
 
 		bool success = result.second;
 		while (++iterId <= toId) {
 			result = useItemMap.emplace(iterId, action);
 			if (!result.second) {
-				std::cout << "[Warning - Actions::registerEvent] Duplicate registered item with id: " << iterId << " in fromid: " << fromId << ", toid: " << toId << std::endl;
+				Logger::warn() << "[Warning - Actions::registerEvent] Duplicate registered item with id: " << iterId << " in fromid: " << fromId << ", toid: " << toId << std::endl;
 				continue;
 			}
 			success = true;
@@ -129,13 +130,13 @@ bool Actions::registerEvent(Event* event, const pugi::xml_node& node)
 
 		auto result = uniqueItemMap.emplace(uid, action);
 		if (!result.second) {
-			std::cout << "[Warning - Actions::registerEvent] Duplicate registered item with uniqueid: " << uid << std::endl;
+			Logger::warn() << "[Warning - Actions::registerEvent] Duplicate registered item with uniqueid: " << uid << std::endl;
 		}
 		return result.second;
 	} else if ((attr = node.attribute("fromuid"))) {
 		pugi::xml_attribute toUidAttribute = node.attribute("touid");
 		if (!toUidAttribute) {
-			std::cout << "[Warning - Actions::registerEvent] Missing touid in fromuid: " << attr.as_string() << std::endl;
+			Logger::warn() << "[Warning - Actions::registerEvent] Missing touid in fromuid: " << attr.as_string() << std::endl;
 			return false;
 		}
 
@@ -145,14 +146,14 @@ bool Actions::registerEvent(Event* event, const pugi::xml_node& node)
 
 		auto result = uniqueItemMap.emplace(iterUid, action);
 		if (!result.second) {
-			std::cout << "[Warning - Actions::registerEvent] Duplicate registered item with unique id: " << iterUid << " in fromuid: " << fromUid << ", touid: " << toUid << std::endl;
+			Logger::warn() << "[Warning - Actions::registerEvent] Duplicate registered item with unique id: " << iterUid << " in fromuid: " << fromUid << ", touid: " << toUid << std::endl;
 		}
 
 		bool success = result.second;
 		while (++iterUid <= toUid) {
 			result = uniqueItemMap.emplace(iterUid, action);
 			if (!result.second) {
-				std::cout << "[Warning - Actions::registerEvent] Duplicate registered item with unique id: " << iterUid << " in fromuid: " << fromUid << ", touid: " << toUid << std::endl;
+				Logger::warn() << "[Warning - Actions::registerEvent] Duplicate registered item with unique id: " << iterUid << " in fromuid: " << fromUid << ", touid: " << toUid << std::endl;
 				continue;
 			}
 			success = true;
@@ -163,13 +164,13 @@ bool Actions::registerEvent(Event* event, const pugi::xml_node& node)
 
 		auto result = actionItemMap.emplace(aid, action);
 		if (!result.second) {
-			std::cout << "[Warning - Actions::registerEvent] Duplicate registered item with actionid: " << aid << std::endl;
+			Logger::warn() << "[Warning - Actions::registerEvent] Duplicate registered item with actionid: " << aid << std::endl;
 		}
 		return result.second;
 	} else if ((attr = node.attribute("fromaid"))) {
 		pugi::xml_attribute toAidAttribute = node.attribute("toaid");
 		if (!toAidAttribute) {
-			std::cout << "[Warning - Actions::registerEvent] Missing toaid in fromaid: " << attr.as_string() << std::endl;
+			Logger::warn() << "[Warning - Actions::registerEvent] Missing toaid in fromaid: " << attr.as_string() << std::endl;
 			return false;
 		}
 
@@ -179,14 +180,14 @@ bool Actions::registerEvent(Event* event, const pugi::xml_node& node)
 
 		auto result = actionItemMap.emplace(iterAid, action);
 		if (!result.second) {
-			std::cout << "[Warning - Actions::registerEvent] Duplicate registered item with action id: " << iterAid << " in fromaid: " << fromAid << ", toaid: " << toAid << std::endl;
+			Logger::warn() << "[Warning - Actions::registerEvent] Duplicate registered item with action id: " << iterAid << " in fromaid: " << fromAid << ", toaid: " << toAid << std::endl;
 		}
 
 		bool success = result.second;
 		while (++iterAid <= toAid) {
 			result = actionItemMap.emplace(iterAid, action);
 			if (!result.second) {
-				std::cout << "[Warning - Actions::registerEvent] Duplicate registered item with action id: " << iterAid << " in fromaid: " << fromAid << ", toaid: " << toAid << std::endl;
+				Logger::warn() << "[Warning - Actions::registerEvent] Duplicate registered item with action id: " << iterAid << " in fromaid: " << fromAid << ", toaid: " << toAid << std::endl;
 				continue;
 			}
 			success = true;
@@ -498,7 +499,7 @@ bool Action::executeUse(Player* player, Item* item, const Position& fromPos, Thi
 {
 	//onUse(player, item, fromPosition, target, toPosition, isHotkey)
 	if (!scriptInterface->reserveScriptEnv()) {
-		std::cout << "[Error - Action::executeUse] Call stack overflow" << std::endl;
+		Logger::error() << "[Error - Action::executeUse] Call stack overflow" << std::endl;
 		return false;
 	}
 

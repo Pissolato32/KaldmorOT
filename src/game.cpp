@@ -41,6 +41,7 @@
 #include "spells.h"
 #include "talkaction.h"
 #include "weapons.h"
+#include "logger.h"
 
 extern ConfigManager g_config;
 extern Actions* g_actions;
@@ -166,7 +167,7 @@ void Game::saveGameState()
 		setGameState(GAME_STATE_MAINTAIN);
 	}
 
-	std::cout << "Saving server..." << std::endl;
+	Logger::info() << "Saving server..." << std::endl;
 
 	for (const auto& it : players) {
 		it.second->loginPosition = it.second->getPosition();
@@ -1658,7 +1659,7 @@ bool Game::playerBroadcastMessage(Player* player, const std::string& text) const
 		return false;
 	}
 
-	std::cout << "> " << player->getName() << " broadcasted: \"" << text << "\"." << std::endl;
+	Logger::info() << "> " << player->getName() << " broadcasted: \"" << text << "\"." << std::endl;
 
 	for (const auto& it : players) {
 		it.second->sendPrivateMessage(player, TALKTYPE_BROADCAST, text);
@@ -4070,7 +4071,7 @@ void Game::internalDecayItem(Item* item)
 	} else {
 		ReturnValue ret = internalRemoveItem(item);
 		if (ret != RETURNVALUE_NOERROR) {
-			std::cout << "[Debug - Game::internalDecayItem] internalDecayItem failed, error code: " << static_cast<uint32_t>(ret) << ", item id: " << item->getID() << std::endl;
+			Logger::error() << "[Debug - Game::internalDecayItem] internalDecayItem failed, error code: " << static_cast<uint32_t>(ret) << ", item id: " << item->getID() << std::endl;
 		}
 	}
 }
@@ -4181,7 +4182,7 @@ void Game::getWorldLightInfo(LightInfo& lightInfo) const
 
 void Game::shutdown()
 {
-	std::cout << "Shutting down..." << std::flush;
+	Logger::info() << "Shutting down..." << std::flush;
 
 	g_scheduler.shutdown();
 	g_databaseTasks.shutdown();
@@ -4197,7 +4198,7 @@ void Game::shutdown()
 
 	ConnectionManager::getInstance().closeAll();
 
-	std::cout << " done!" << std::endl;
+	Logger::info() << " done!" << std::endl;
 }
 
 void Game::cleanup()
@@ -4236,7 +4237,7 @@ void Game::ReleaseItem(Item* item)
 
 void Game::broadcastMessage(const std::string& text, MessageClasses type) const
 {
-	std::cout << "> Broadcasted message: \"" << text << "\"." << std::endl;
+	Logger::info() << "> Broadcasted message: \"" << text << "\"." << std::endl;
 	for (const auto& it : players) {
 		it.second->sendTextMessage(type, text);
 	}
@@ -4305,7 +4306,7 @@ void Game::updatePremium(Account& account)
 	}
 
 	if (save && !IOLoginData::saveAccount(account)) {
-		std::cout << "> ERROR: Failed to save account: " << account.name << "!" << std::endl;
+		Logger::error() << "> ERROR: Failed to save account: " << account.name << "!" << std::endl;
 	}
 }
 
@@ -4758,7 +4759,7 @@ bool Game::addUniqueItem(uint16_t uniqueId, Item* item)
 {
 	auto result = uniqueItems.emplace(uniqueId, item);
 	if (!result.second) {
-		std::cout << "Duplicate unique id: " << uniqueId << std::endl;
+		Logger::warn() << "Duplicate unique id: " << uniqueId << std::endl;
 	}
 	return result.second;
 }
@@ -4793,10 +4794,10 @@ bool Game::reload(ReloadTypes_t reloadType)
 
 		case RELOAD_TYPE_SPELLS: {
 			if (!g_spells->reload()) {
-				std::cout << "[Error - Game::reload] Failed to reload spells." << std::endl;
+				Logger::error() << "[Error - Game::reload] Failed to reload spells." << std::endl;
 				std::terminate();
 			} else if (!g_monsters.reload()) {
-				std::cout << "[Error - Game::reload] Failed to reload monsters." << std::endl;
+				Logger::error() << "[Error - Game::reload] Failed to reload monsters." << std::endl;
 				std::terminate();
 			}
 			return true;
@@ -4812,10 +4813,10 @@ bool Game::reload(ReloadTypes_t reloadType)
 
 		default: {
 			if (!g_spells->reload()) {
-				std::cout << "[Error - Game::reload] Failed to reload spells." << std::endl;
+				Logger::error() << "[Error - Game::reload] Failed to reload spells." << std::endl;
 				std::terminate();
 			} else if (!g_monsters.reload()) {
-				std::cout << "[Error - Game::reload] Failed to reload monsters." << std::endl;
+				Logger::error() << "[Error - Game::reload] Failed to reload monsters." << std::endl;
 				std::terminate();
 			}
 

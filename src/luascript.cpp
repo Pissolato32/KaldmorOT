@@ -35,6 +35,7 @@
 #include "monster.h"
 #include "scheduler.h"
 #include "databasetasks.h"
+#include "logger.h"
 
 extern Chat* g_chat;
 extern Game g_game;
@@ -133,7 +134,7 @@ void ScriptEnvironment::insertItem(uint32_t uid, Item* item)
 {
 	auto result = localMap.emplace(uid, item);
 	if (!result.second) {
-		std::cout << std::endl << "Lua Script Error: Thing uid already taken.";
+		Logger::error() << std::endl << "Lua Script Error: Thing uid already taken.";
 	}
 }
 
@@ -427,30 +428,30 @@ void LuaScriptInterface::reportError(const char* function, const std::string& er
 	LuaScriptInterface* scriptInterface;
 	getScriptEnv()->getEventInfo(scriptId, scriptInterface, callbackId, timerEvent);
 
-	std::cout << std::endl << "Lua Script Error: ";
+	Logger::error() << std::endl << "Lua Script Error: ";
 
 	if (scriptInterface) {
-		std::cout << '[' << scriptInterface->getInterfaceName() << "] " << std::endl;
+		Logger::info() << '[' << scriptInterface->getInterfaceName() << "] " << std::endl;
 
 		if (timerEvent) {
-			std::cout << "in a timer event called from: " << std::endl;
+			Logger::info() << "in a timer event called from: " << std::endl;
 		}
 
 		if (callbackId) {
-			std::cout << "in callback: " << scriptInterface->getFileById(callbackId) << std::endl;
+			Logger::info() << "in callback: " << scriptInterface->getFileById(callbackId) << std::endl;
 		}
 
-		std::cout << scriptInterface->getFileById(scriptId) << std::endl;
+		Logger::info() << scriptInterface->getFileById(scriptId) << std::endl;
 	}
 
 	if (function) {
-		std::cout << function << "(). ";
+		Logger::info() << function << "(). ";
 	}
 
 	if (stack_trace && scriptInterface) {
-		std::cout << scriptInterface->getStackTrace(error_desc) << std::endl;
+		Logger::info() << scriptInterface->getStackTrace(error_desc) << std::endl;
 	} else {
-		std::cout << error_desc << std::endl;
+		Logger::info() << error_desc << std::endl;
 	}
 }
 
@@ -3981,9 +3982,9 @@ int LuaScriptInterface::luaGameLoadMap(lua_State* L)
 		try {
 			g_game.loadMap(path);
 		} catch (const OTB::LoadError& e) {
-			std::cout << "[Error - luaGameLoadMap] Failed to load map: " << e.what() << std::endl;
+			Logger::error() << "[Error - luaGameLoadMap] Failed to load map: " << e.what() << std::endl;
 		} catch (const std::exception& e) {
-			std::cout << "[Error - luaGameLoadMap] Unexpected error while loading map: " << e.what() << std::endl;
+			Logger::error() << "[Error - luaGameLoadMap] Unexpected error while loading map: " << e.what() << std::endl;
 		}
 	}));
 	return 0;
@@ -12573,7 +12574,7 @@ void LuaEnvironment::executeTimerEvent(uint32_t eventIndex)
 		env->setScriptId(timerEventDesc.scriptId, this);
 		callFunction(timerEventDesc.parameters.size());
 	} else {
-		std::cout << "[Error - LuaScriptInterface::executeTimerEvent] Call stack overflow" << std::endl;
+		Logger::error() << "[Error - LuaScriptInterface::executeTimerEvent] Call stack overflow" << std::endl;
 	}
 
 	//free resources

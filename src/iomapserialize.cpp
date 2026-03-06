@@ -22,6 +22,7 @@
 #include "iomapserialize.h"
 #include "game.h"
 #include "bed.h"
+#include "logger.h"
 
 extern Game g_game;
 
@@ -61,7 +62,7 @@ void IOMapSerialize::loadHouseItems(Map* map)
 			loadItem(propStream, tile);
 		}
 	} while (result->next());
-	std::cout << "> Loaded house items in: " << (OTSYS_TIME() - start) / (1000.) << " s" << std::endl;
+	Logger::info() << "> Loaded house items in: " << (OTSYS_TIME() - start) / (1000.) << " s" << std::endl;
 }
 
 bool IOMapSerialize::saveHouseItems()
@@ -108,7 +109,7 @@ bool IOMapSerialize::saveHouseItems()
 
 	//End the transaction
 	bool success = transaction.commit();
-	std::cout << "> Saved house items in: " <<
+	Logger::info() << "> Saved house items in: " <<
 	          (OTSYS_TIME() - start) / (1000.) << " s" << std::endl;
 	return success;
 }
@@ -117,7 +118,7 @@ bool IOMapSerialize::loadContainer(PropStream& propStream, Container* container)
 {
 	while (container->serializationCount > 0) {
 		if (!loadItem(propStream, container)) {
-			std::cout << "[Warning - IOMapSerialize::loadContainer] Unserialization error for container item: " << container->getID() << std::endl;
+			Logger::warn() << "[Warning - IOMapSerialize::loadContainer] Unserialization error for container item: " << container->getID() << std::endl;
 			return false;
 		}
 		container->serializationCount--;
@@ -125,7 +126,7 @@ bool IOMapSerialize::loadContainer(PropStream& propStream, Container* container)
 
 	uint8_t endAttr;
 	if (!propStream.read<uint8_t>(endAttr) || endAttr != 0) {
-		std::cout << "[Warning - IOMapSerialize::loadContainer] Unserialization error for container item: " << container->getID() << std::endl;
+		Logger::warn() << "[Warning - IOMapSerialize::loadContainer] Unserialization error for container item: " << container->getID() << std::endl;
 		return false;
 	}
 	return true;
@@ -158,7 +159,7 @@ bool IOMapSerialize::loadItem(PropStream& propStream, Cylinder* parent)
 				parent->internalAddThing(item);
 				item->startDecaying();
 			} else {
-				std::cout << "WARNING: Unserialization error in IOMapSerialize::loadItem()" << id << std::endl;
+				Logger::warn() << "WARNING: Unserialization error in IOMapSerialize::loadItem()" << id << std::endl;
 				delete item;
 				return false;
 			}
@@ -190,7 +191,7 @@ bool IOMapSerialize::loadItem(PropStream& propStream, Cylinder* parent)
 
 				g_game.transformItem(item, id);
 			} else {
-				std::cout << "WARNING: Unserialization error in IOMapSerialize::loadItem()" << id << std::endl;
+				Logger::warn() << "WARNING: Unserialization error in IOMapSerialize::loadItem()" << id << std::endl;
 			}
 		} else {
 			//The map changed since the last save, just read the attributes

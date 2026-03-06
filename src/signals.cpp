@@ -34,6 +34,7 @@
 #include "globalevent.h"
 #include "monster.h"
 #include "events.h"
+#include "logger.h"
 
 extern Dispatcher g_dispatcher;
 
@@ -70,7 +71,7 @@ void Signals::asyncWait()
 {
 	set.async_wait([this] (ErrorCode err, int signal) {
 		if (err) {
-			std::cerr << "Signal handling error: "  << err.message() << std::endl;
+			Logger::error() << "Signal handling error: "  << err.message() << std::endl;
 			return;
 		}
 		dispatchSignalHandler(signal);
@@ -103,71 +104,71 @@ void Signals::dispatchSignalHandler(int signal)
 void Signals::sigtermHandler()
 {
 	//Dispatcher thread
-	std::cout << "SIGTERM received, shutting game server down..." << std::endl;
+	Logger::info() << "SIGTERM received, shutting game server down..." << std::endl;
 	g_game.setGameState(GAME_STATE_SHUTDOWN);
 }
 
 void Signals::sigusr1Handler()
 {
 	//Dispatcher thread
-	std::cout << "SIGUSR1 received, saving the game state..." << std::endl;
+	Logger::info() << "SIGUSR1 received, saving the game state..." << std::endl;
 	g_game.saveGameState();
 }
 
 void Signals::sighupHandler()
 {
 	//Dispatcher thread
-	std::cout << "SIGHUP received, reloading config files..." << std::endl;
+	Logger::info() << "SIGHUP received, reloading config files..." << std::endl;
 
 	g_actions->reload();
-	std::cout << "Reloaded actions." << std::endl;
+	Logger::info() << "Reloaded actions." << std::endl;
 
 	g_config.reload();
-	std::cout << "Reloaded config." << std::endl;
+	Logger::info() << "Reloaded config." << std::endl;
 
 	g_creatureEvents->reload();
-	std::cout << "Reloaded creature scripts." << std::endl;
+	Logger::info() << "Reloaded creature scripts." << std::endl;
 
 	g_moveEvents->reload();
-	std::cout << "Reloaded movements." << std::endl;
+	Logger::info() << "Reloaded movements." << std::endl;
 
 	Npcs::reload();
-	std::cout << "Reloaded npcs." << std::endl;
+	Logger::info() << "Reloaded npcs." << std::endl;
 
 	g_game.raids.reload();
 	g_game.raids.startup();
-	std::cout << "Reloaded raids." << std::endl;
+	Logger::info() << "Reloaded raids." << std::endl;
 
 	g_spells->reload();
-	std::cout << "Reloaded monsters." << std::endl;
+	Logger::info() << "Reloaded monsters." << std::endl;
 
 	g_monsters.reload();
-	std::cout << "Reloaded spells." << std::endl;
+	Logger::info() << "Reloaded spells." << std::endl;
 
 	g_talkActions->reload();
-	std::cout << "Reloaded talk actions." << std::endl;
+	Logger::info() << "Reloaded talk actions." << std::endl;
 
 	Item::items.reload();
-	std::cout << "Reloaded items." << std::endl;
+	Logger::info() << "Reloaded items." << std::endl;
 
 	g_weapons->reload();
 	g_weapons->loadDefaults();
-	std::cout << "Reloaded weapons." << std::endl;
+	Logger::info() << "Reloaded weapons." << std::endl;
 
 	g_game.quests.reload();
-	std::cout << "Reloaded quests." << std::endl;
+	Logger::info() << "Reloaded quests." << std::endl;
 
 	g_globalEvents->reload();
-	std::cout << "Reloaded globalevents." << std::endl;
+	Logger::info() << "Reloaded globalevents." << std::endl;
 
 	g_events->load();
-	std::cout << "Reloaded events." << std::endl;
+	Logger::info() << "Reloaded events." << std::endl;
 
 	g_chat->load();
-	std::cout << "Reloaded chatchannels." << std::endl;
+	Logger::info() << "Reloaded chatchannels." << std::endl;
 
 	g_luaEnvironment.loadFile("data/global.lua");
-	std::cout << "Reloaded global.lua." << std::endl;
+	Logger::info() << "Reloaded global.lua." << std::endl;
 
 	lua_gc(g_luaEnvironment.getLuaState(), LUA_GCCOLLECT, 0);
 }
@@ -175,6 +176,6 @@ void Signals::sighupHandler()
 void Signals::sigintHandler()
 {
 	//Dispatcher thread
-	std::cout << "SIGINT received, shutting game server down..." << std::endl;
+	Logger::info() << "SIGINT received, shutting game server down..." << std::endl;
 	g_game.setGameState(GAME_STATE_SHUTDOWN);
 }

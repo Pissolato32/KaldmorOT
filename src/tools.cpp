@@ -21,12 +21,13 @@
 
 #include "tools.h"
 #include "configmanager.h"
+#include "logger.h"
 
 extern ConfigManager g_config;
 
 void printXMLError(const std::string& where, const std::string& fileName, const pugi::xml_parse_result& result)
 {
-	std::cout << '[' << where << "] Failed to load " << fileName << ": " << result.description() << std::endl;
+	Logger::error() << '[' << where << "] Failed to load " << fileName << ": " << result.description() << std::endl;
 
 	FILE* file = fopen(fileName.c_str(), "rb");
 	if (!file) {
@@ -61,16 +62,16 @@ void printXMLError(const std::string& where, const std::string& fileName, const 
 	} while (bytes == 32768);
 	fclose(file);
 
-	std::cout << "Line " << currentLine << ':' << std::endl;
-	std::cout << line << std::endl;
+	Logger::info() << "Line " << currentLine << ':' << std::endl;
+	Logger::info() << line << std::endl;
 	for (size_t i = 0; i < lineOffsetPosition; i++) {
 		if (line[i] == '\t') {
-			std::cout << '\t';
+			Logger::info() << '\t';
 		} else {
-			std::cout << ' ';
+			Logger::info() << ' ';
 		}
 	}
-	std::cout << '^' << std::endl;
+	Logger::info() << '^' << std::endl;
 }
 
 static uint32_t circularShift(int bits, uint32_t value)

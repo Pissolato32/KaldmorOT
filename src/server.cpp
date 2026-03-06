@@ -24,6 +24,7 @@
 #include "scheduler.h"
 #include "configmanager.h"
 #include "ban.h"
+#include "logger.h"
 
 extern ConfigManager g_config;
 Ban g_bans;
@@ -57,7 +58,7 @@ void ServiceManager::stop()
 		try {
 			io_service.post(std::bind(&ServicePort::onStopServer, servicePortIt.second));
 		} catch (boost::system::system_error& e) {
-			std::cout << "[ServiceManager::stop] Network Error: " << e.what() << std::endl;
+			Logger::error() << "[ServiceManager::stop] Network Error: " << e.what() << std::endl;
 		}
 	}
 
@@ -179,7 +180,7 @@ void ServicePort::open(uint16_t port)
 
 		accept();
 	} catch (boost::system::system_error& e) {
-		std::cout << "[ServicePort::open] Error: " << e.what() << std::endl;
+		Logger::error() << "[ServicePort::open] Error: " << e.what() << std::endl;
 
 		pendingStart = true;
 		g_scheduler.addEvent(createSchedulerTask(15000,

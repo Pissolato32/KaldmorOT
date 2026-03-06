@@ -23,6 +23,7 @@
 
 #include "configmanager.h"
 #include "game.h"
+#include "logger.h"
 
 #if LUA_VERSION_NUM >= 502
 #undef lua_strlen
@@ -104,7 +105,7 @@ bool ConfigManager::load()
 	luaL_openlibs(L);
 
 	if (luaL_dofile(L, configFileLua.c_str())) {
-		std::cout << "[Error - ConfigManager::load] " << lua_tostring(L, -1) << std::endl;
+		Logger::error() << "[Error - ConfigManager::load] " << lua_tostring(L, -1) << std::endl;
 		lua_close(L);
 		return false;
 	}
@@ -212,7 +213,7 @@ static std::string dummy;
 const std::string& ConfigManager::getString(string_config_t what) const
 {
 	if (what >= LAST_STRING_CONFIG) {
-		std::cout << "[Warning - ConfigManager::getString] Accessing invalid index: " << what << std::endl;
+		Logger::warn() << "[Warning - ConfigManager::getString] Accessing invalid index: " << what << std::endl;
 		return dummy;
 	}
 	return string[what];
@@ -221,7 +222,7 @@ const std::string& ConfigManager::getString(string_config_t what) const
 int32_t ConfigManager::getNumber(integer_config_t what) const
 {
 	if (what >= LAST_INTEGER_CONFIG) {
-		std::cout << "[Warning - ConfigManager::getNumber] Accessing invalid index: " << what << std::endl;
+		Logger::warn() << "[Warning - ConfigManager::getNumber] Accessing invalid index: " << what << std::endl;
 		return 0;
 	}
 	return integer[what];
@@ -230,7 +231,7 @@ int32_t ConfigManager::getNumber(integer_config_t what) const
 bool ConfigManager::getBoolean(boolean_config_t what) const
 {
 	if (what >= LAST_BOOLEAN_CONFIG) {
-		std::cout << "[Warning - ConfigManager::getBoolean] Accessing invalid index: " << what << std::endl;
+		Logger::warn() << "[Warning - ConfigManager::getBoolean] Accessing invalid index: " << what << std::endl;
 		return false;
 	}
 	return boolean[what];
@@ -239,7 +240,7 @@ bool ConfigManager::getBoolean(boolean_config_t what) const
 float ConfigManager::getFloat(floating_config_t what) const
 {
 	if (what >= LAST_FLOATING_CONFIG) {
-		std::cout << "[Warning - ConfigManager::getFLoat] Accessing invalid index: " << what << std::endl;
+		Logger::warn() << "[Warning - ConfigManager::getFLoat] Accessing invalid index: " << what << std::endl;
 		return 0;
 	}
 	return floating[what];

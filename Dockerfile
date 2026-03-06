@@ -15,6 +15,7 @@ RUN apt-get update && apt-get install -y \
     libcrypto++-dev \
     libgmp3-dev \
     libluajit-5.1-dev \
+    libspdlog-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Set working directory

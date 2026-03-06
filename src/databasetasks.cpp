@@ -21,6 +21,7 @@
 
 #include "databasetasks.h"
 #include "tasks.h"
+#include "logger.h"
 
 extern Dispatcher g_dispatcher;
 
@@ -28,7 +29,7 @@ extern Dispatcher g_dispatcher;
 void DatabaseTasks::start()
 {
 	if (!db.connect()) {
-		std::cout << "[Error - DatabaseTasks::start] Failed to connect to database task worker." << std::endl;
+		Logger::error() << "[Error - DatabaseTasks::start] Failed to connect to database task worker." << std::endl;
 		return;
 	}
 	ThreadHolder::start();

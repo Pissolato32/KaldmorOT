@@ -29,6 +29,7 @@
 #include "weapons.h"
 #include "globalevent.h"
 #include "events.h"
+#include "logger.h"
 
 Actions* g_actions = nullptr;
 CreatureEvents* g_creatureEvents = nullptr;
@@ -58,14 +59,14 @@ ScriptingManager::~ScriptingManager()
 bool ScriptingManager::loadScriptSystems()
 {
 	if (g_luaEnvironment.loadFile("data/global.lua") == -1) {
-		std::cout << "[Warning - ScriptingManager::loadScriptSystems] Can not load data/global.lua" << std::endl;
+		Logger::warn() << "[Warning - ScriptingManager::loadScriptSystems] Can not load data/global.lua" << std::endl;
 	}
 
 	g_chat = new Chat();
 
 	g_weapons = new Weapons();
 	if (!g_weapons->loadFromXml()) {
-		std::cout << "> ERROR: Unable to load weapons!" << std::endl;
+		Logger::error() << "> ERROR: Unable to load weapons!" << std::endl;
 		return false;
 	}
 
@@ -73,43 +74,43 @@ bool ScriptingManager::loadScriptSystems()
 
 	g_spells = new Spells();
 	if (!g_spells->loadFromXml()) {
-		std::cout << "> ERROR: Unable to load spells!" << std::endl;
+		Logger::error() << "> ERROR: Unable to load spells!" << std::endl;
 		return false;
 	}
 
 	g_actions = new Actions();
 	if (!g_actions->loadFromXml()) {
-		std::cout << "> ERROR: Unable to load actions!" << std::endl;
+		Logger::error() << "> ERROR: Unable to load actions!" << std::endl;
 		return false;
 	}
 
 	g_talkActions = new TalkActions();
 	if (!g_talkActions->loadFromXml()) {
-		std::cout << "> ERROR: Unable to load talk actions!" << std::endl;
+		Logger::error() << "> ERROR: Unable to load talk actions!" << std::endl;
 		return false;
 	}
 
 	g_moveEvents = new MoveEvents();
 	if (!g_moveEvents->loadFromXml()) {
-		std::cout << "> ERROR: Unable to load move events!" << std::endl;
+		Logger::error() << "> ERROR: Unable to load move events!" << std::endl;
 		return false;
 	}
 
 	g_creatureEvents = new CreatureEvents();
 	if (!g_creatureEvents->loadFromXml()) {
-		std::cout << "> ERROR: Unable to load creature events!" << std::endl;
+		Logger::error() << "> ERROR: Unable to load creature events!" << std::endl;
 		return false;
 	}
 
 	g_globalEvents = new GlobalEvents();
 	if (!g_globalEvents->loadFromXml()) {
-		std::cout << "> ERROR: Unable to load global events!" << std::endl;
+		Logger::error() << "> ERROR: Unable to load global events!" << std::endl;
 		return false;
 	}
 
 	g_events = new Events();
 	if (!g_events->load()) {
-		std::cout << "> ERROR: Unable to load events!" << std::endl;
+		Logger::error() << "> ERROR: Unable to load events!" << std::endl;
 		return false;
 	}
 

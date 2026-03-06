@@ -27,6 +27,7 @@
 #include "events.h"
 
 #include "pugicast.h"
+#include "logger.h"
 
 extern Events* g_events;
 extern ConfigManager g_config;
@@ -95,7 +96,7 @@ bool Spawns::loadFromXml(const std::string& filename)
 				if (interval > MINSPAWN_INTERVAL) {
 					spawn.addMonster(nameAttribute.as_string(), pos, dir, interval);
 				} else {
-					std::cout << "[Warning - Spawns::loadFromXml] " << nameAttribute.as_string() << ' ' << pos << " spawntime can not be less than " << MINSPAWN_INTERVAL / 1000 << " seconds." << std::endl;
+					Logger::warn() << "[Warning - Spawns::loadFromXml] " << nameAttribute.as_string() << ' ' << pos << " spawntime can not be less than " << MINSPAWN_INTERVAL / 1000 << " seconds." << std::endl;
 				}
 			} else if (strcasecmp(childNode.name(), "npc") == 0) {
 				pugi::xml_attribute nameAttribute = childNode.attribute("name");
@@ -307,7 +308,7 @@ bool Spawn::addMonster(const std::string& name, const Position& pos, Direction d
 {
 	MonsterType* mType = g_monsters.getMonsterType(name);
 	if (!mType) {
-		std::cout << "[Spawn::addMonster] Can not find " << name << std::endl;
+		Logger::info() << "[Spawn::addMonster] Can not find " << name << std::endl;
 		return false;
 	}
 

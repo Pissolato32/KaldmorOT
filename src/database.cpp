@@ -23,6 +23,7 @@
 #include "database.h"
 
 #include <errmsg.h>
+#include "logger.h"
 
 extern ConfigManager g_config;
 
@@ -38,7 +39,7 @@ bool Database::connect()
 	// connection handle initialization
 	handle = mysql_init(nullptr);
 	if (!handle) {
-		std::cout << std::endl << "Failed to initialize MySQL connection handle." << std::endl;
+		Logger::error() << std::endl << "Failed to initialize MySQL connection handle." << std::endl;
 		return false;
 	}
 
@@ -49,7 +50,7 @@ bool Database::connect()
 
 	// connects to database
 	if (!mysql_real_connect(handle, g_config.getString(ConfigManager::MYSQL_HOST).c_str(), g_config.getString(ConfigManager::MYSQL_USER).c_str(), g_config.getString(ConfigManager::MYSQL_PASS).c_str(), g_config.getString(ConfigManager::MYSQL_DB).c_str(), g_config.getNumber(ConfigManager::SQL_PORT), g_config.getString(ConfigManager::MYSQL_SOCK).c_str(), 0)) {
-		std::cout << std::endl << "MySQL Error Message: " << mysql_error(handle) << std::endl;
+		Logger::info() << std::endl << "MySQL Error Message: " << mysql_error(handle) << std::endl;
 		return false;
 	}
 
@@ -73,7 +74,7 @@ bool Database::beginTransaction()
 bool Database::rollback()
 {
 	if (mysql_rollback(handle) != 0) {
-		std::cout << "[Error - mysql_rollback] Message: " << mysql_error(handle) << std::endl;
+		Logger::error() << "[Error - mysql_rollback] Message: " << mysql_error(handle) << std::endl;
 		databaseLock.unlock();
 		return false;
 	}
@@ -85,7 +86,7 @@ bool Database::rollback()
 bool Database::commit()
 {
 	if (mysql_commit(handle) != 0) {
-		std::cout << "[Error - mysql_commit] Message: " << mysql_error(handle) << std::endl;
+		Logger::error() << "[Error - mysql_commit] Message: " << mysql_error(handle) << std::endl;
 		databaseLock.unlock();
 		return false;
 	}
@@ -102,7 +103,7 @@ bool Database::executeQuery(const std::string& query)
 	databaseLock.lock();
 
 	while (mysql_real_query(handle, query.c_str(), query.length()) != 0) {
-		std::cout << "[Error - mysql_real_query] Query: " << query.substr(0, 256) << std::endl << "Message: " << mysql_error(handle) << std::endl;
+		Logger::error() << "[Error - mysql_real_query] Query: " << query.substr(0, 256) << std::endl << "Message: " << mysql_error(handle) << std::endl;
 		auto error = mysql_errno(handle);
 		if (error != CR_SERVER_LOST && error != CR_SERVER_GONE_ERROR && error != CR_CONN_HOST_ERROR && error != 1053/*ER_SERVER_SHUTDOWN*/ && error != CR_CONNECTION_ERROR) {
 			success = false;
@@ -133,7 +134,7 @@ DBResult_ptr Database::storeQuery(const std::string& query)
 
 	for (int attempt = 0; attempt < MAX_QUERY_RETRIES; ++attempt) {
 		if (mysql_real_query(handle, query.c_str(), query.length()) != 0) {
-			std::cout << "[Error - mysql_real_query] Query: " << query << std::endl << "Message: " << mysql_error(handle) << std::endl;
+			Logger::error() << "[Error - mysql_real_query] Query: " << query << std::endl << "Message: " << mysql_error(handle) << std::endl;
 			auto error = mysql_errno(handle);
 			if (error != CR_SERVER_LOST && error != CR_SERVER_GONE_ERROR && error != CR_CONN_HOST_ERROR && error != 1053/*ER_SERVER_SHUTDOWN*/ && error != CR_CONNECTION_ERROR) {
 				// Non-recoverable error — bail out immediately
@@ -149,7 +150,7 @@ DBResult_ptr Database::storeQuery(const std::string& query)
 		// We call mysql_store_result every time as described in MySQL manual.
 		MYSQL_RES* res = mysql_store_result(handle);
 		if (res == nullptr) {
-			std::cout << "[Error - mysql_store_result] Query: " << query << std::endl << "Message: " << mysql_error(handle) << std::endl;
+			Logger::error() << "[Error - mysql_store_result] Query: " << query << std::endl << "Message: " << mysql_error(handle) << std::endl;
 			auto error = mysql_errno(handle);
 			if (error != CR_SERVER_LOST && error != CR_SERVER_GONE_ERROR && error != CR_CONN_HOST_ERROR && error != 1053/*ER_SERVER_SHUTDOWN*/ && error != CR_CONNECTION_ERROR) {
 				// Non-recoverable — bail out
@@ -171,7 +172,7 @@ DBResult_ptr Database::storeQuery(const std::string& query)
 	}
 
 	// All retries exhausted
-	std::cout << "[Error - Database::storeQuery] Max retries reached for query: " << query.substr(0, 256) << std::endl;
+	Logger::error() << "[Error - Database::storeQuery] Max retries reached for query: " << query.substr(0, 256) << std::endl;
 	databaseLock.unlock();
 	return nullptr;
 }
@@ -227,7 +228,7 @@ std::string DBResult::getString(const std::string& s) const
 {
 	auto it = listNames.find(s);
 	if (it == listNames.end()) {
-		std::cout << "[Error - DBResult::getString] Column '" << s << "' does not exist in result set." << std::endl;
+		Logger::error() << "[Error - DBResult::getString] Column '" << s << "' does not exist in result set." << std::endl;
 		return std::string();
 	}
 
@@ -242,7 +243,7 @@ const char* DBResult::getStream(const std::string& s, unsigned long& size) const
 {
 	auto it = listNames.find(s);
 	if (it == listNames.end()) {
-		std::cout << "[Error - DBResult::getStream] Column '" << s << "' doesn't exist in the result set" << std::endl;
+		Logger::error() << "[Error - DBResult::getStream] Column '" << s << "' doesn't exist in the result set" << std::endl;
 		size = 0;
 		return nullptr;
 	}

@@ -24,6 +24,7 @@
 #include "pugicast.h"
 
 #include "movement.h"
+#include "logger.h"
 
 extern Game g_game;
 extern Vocations g_vocations;
@@ -196,7 +197,7 @@ void MoveEvents::addEvent(MoveEvent* moveEvent, int32_t id, MoveListMap& map)
 		std::list<MoveEvent*>& moveEventList = it->second.moveEvent[moveEvent->getEventType()];
 		for (MoveEvent* existingMoveEvent : moveEventList) {
 			if (existingMoveEvent->getSlot() == moveEvent->getSlot()) {
-				std::cout << "[Warning - MoveEvents::addEvent] Duplicate move event found: " << id << std::endl;
+				Logger::warn() << "[Warning - MoveEvents::addEvent] Duplicate move event found: " << id << std::endl;
 			}
 		}
 		moveEventList.push_back(moveEvent);
@@ -276,7 +277,7 @@ void MoveEvents::addEvent(MoveEvent* moveEvent, const Position& pos, MovePosList
 	} else {
 		std::list<MoveEvent*>& moveEventList = it->second.moveEvent[moveEvent->getEventType()];
 		if (!moveEventList.empty()) {
-			std::cout << "[Warning - MoveEvents::addEvent] Duplicate move event found: " << pos << std::endl;
+			Logger::warn() << "[Warning - MoveEvents::addEvent] Duplicate move event found: " << pos << std::endl;
 		}
 
 		moveEventList.push_back(moveEvent);
@@ -396,7 +397,7 @@ std::string MoveEvent::getScriptEventName() const
 		case MOVE_EVENT_ADD_ITEM: return "onAddItem";
 		case MOVE_EVENT_REMOVE_ITEM: return "onRemoveItem";
 		default:
-			std::cout << "[Error - MoveEvent::getScriptEventName] Invalid event type" << std::endl;
+			Logger::error() << "[Error - MoveEvent::getScriptEventName] Invalid event type" << std::endl;
 			return std::string();
 	}
 }
@@ -405,7 +406,7 @@ bool MoveEvent::configureEvent(const pugi::xml_node& node)
 {
 	pugi::xml_attribute eventAttr = node.attribute("event");
 	if (!eventAttr) {
-		std::cout << "[Error - MoveEvent::configureMoveEvent] Missing event" << std::endl;
+		Logger::error() << "[Error - MoveEvent::configureMoveEvent] Missing event" << std::endl;
 		return false;
 	}
 
@@ -423,7 +424,7 @@ bool MoveEvent::configureEvent(const pugi::xml_node& node)
 	} else if (tmpStr == "removeitem") {
 		eventType = MOVE_EVENT_REMOVE_ITEM;
 	} else {
-		std::cout << "Error: [MoveEvent::configureMoveEvent] No valid event name " << eventAttr.as_string() << std::endl;
+		Logger::error() << "Error: [MoveEvent::configureMoveEvent] No valid event name " << eventAttr.as_string() << std::endl;
 		return false;
 	}
 
@@ -454,7 +455,7 @@ bool MoveEvent::configureEvent(const pugi::xml_node& node)
 			} else if (tmpStr == "ammo") {
 				slot = SLOTP_AMMO;
 			} else {
-				std::cout << "[Warning - MoveEvent::configureMoveEvent] Unknown slot type: " << slotAttribute.as_string() << std::endl;
+				Logger::warn() << "[Warning - MoveEvent::configureMoveEvent] Unknown slot type: " << slotAttribute.as_string() << std::endl;
 			}
 		}
 
@@ -766,7 +767,7 @@ bool MoveEvent::loadFunction(const pugi::xml_attribute& attr)
 	} else if (strcasecmp(functionName, "ondeequipitem") == 0) {
 		equipFunction = DeEquipItem;
 	} else {
-		std::cout << "[Warning - MoveEvent::loadFunction] Function \"" << functionName << "\" does not exist." << std::endl;
+		Logger::warn() << "[Warning - MoveEvent::loadFunction] Function \"" << functionName << "\" does not exist." << std::endl;
 		return false;
 	}
 
@@ -798,7 +799,7 @@ bool MoveEvent::executeStep(Creature* creature, Item* item, const Position& pos)
 	//onStepIn(creature, item, pos, fromPosition)
 	//onStepOut(creature, item, pos, fromPosition)
 	if (!scriptInterface->reserveScriptEnv()) {
-		std::cout << "[Error - MoveEvent::executeStep] Call stack overflow" << std::endl;
+		Logger::error() << "[Error - MoveEvent::executeStep] Call stack overflow" << std::endl;
 		return false;
 	}
 
@@ -831,7 +832,7 @@ bool MoveEvent::executeEquip(Player* player, Item* item, slots_t slot, bool isCh
 	//onEquip(player, item, slot, isCheck)
 	//onDeEquip(player, item, slot, isCheck)
 	if (!scriptInterface->reserveScriptEnv()) {
-		std::cout << "[Error - MoveEvent::executeEquip] Call stack overflow" << std::endl;
+		Logger::error() << "[Error - MoveEvent::executeEquip] Call stack overflow" << std::endl;
 		return false;
 	}
 
@@ -864,7 +865,7 @@ bool MoveEvent::executeAddRemItem(Item* item, Item* tileItem, const Position& po
 	//onaddItem(moveitem, tileitem, pos)
 	//onRemoveItem(moveitem, tileitem, pos)
 	if (!scriptInterface->reserveScriptEnv()) {
-		std::cout << "[Error - MoveEvent::executeAddRemItem] Call stack overflow" << std::endl;
+		Logger::error() << "[Error - MoveEvent::executeAddRemItem] Call stack overflow" << std::endl;
 		return false;
 	}
 

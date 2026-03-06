@@ -27,6 +27,7 @@
 
 #include "scheduler.h"
 #include "server.h"
+#include "logger.h"
 
 extern ConfigManager g_config;
 
@@ -96,7 +97,7 @@ void Connection::closeSocket()
 			socket.shutdown(boost::asio::ip::tcp::socket::shutdown_both, error);
 			socket.close(error);
 		} catch (boost::system::system_error& e) {
-			std::cout << "[Network error - Connection::closeSocket] " << e.what() << std::endl;
+			Logger::error() << "[Network error - Connection::closeSocket] " << e.what() << std::endl;
 		}
 	}
 }
@@ -126,7 +127,7 @@ void Connection::accept()
 		                        boost::asio::buffer(msg.getBuffer(), NetworkMessage::HEADER_LENGTH),
 		                        std::bind(&Connection::parseHeader, shared_from_this(), std::placeholders::_1));
 	} catch (boost::system::system_error& e) {
-		std::cout << "[Network error - Connection::accept] " << e.what() << std::endl;
+		Logger::error() << "[Network error - Connection::accept] " << e.what() << std::endl;
 		close(FORCE_CLOSE);
 	}
 }
@@ -149,7 +150,7 @@ void Connection::parseHeader(const boost::system::error_code& error)
 	if ((++packetsSent / timePassed) > static_cast<uint32_t>(g_config.getNumber(ConfigManager::MAX_PACKETS_PER_SECOND))) {
 		const auto client = std::dynamic_pointer_cast<ProtocolGame>(protocol);
 		if (client && !client->m_spectator) {
-			std::cout << convertIPToString(getIP()) << " disconnected for exceeding packet per second limit." << std::endl;
+			Logger::info() << convertIPToString(getIP()) << " disconnected for exceeding packet per second limit." << std::endl;
 			close();
 			return;
 		}
@@ -170,7 +171,7 @@ void Connection::parseHeader(const boost::system::error_code& error)
 		boost::asio::async_read(socket, boost::asio::buffer(msg.getBodyBuffer(), size),
 		                        std::bind(&Connection::parsePacket, shared_from_this(), std::placeholders::_1));
 	} catch (boost::system::system_error& e) {
-		std::cout << "[Network error - Connection::parseHeader] " << e.what() << std::endl;
+		Logger::error() << "[Network error - Connection::parseHeader] " << e.what() << std::endl;
 		close(FORCE_CLOSE);
 	}
 }
@@ -233,7 +234,7 @@ void Connection::parsePacket(const boost::system::error_code& error)
 		                        boost::asio::buffer(msg.getBuffer(), NetworkMessage::HEADER_LENGTH),
 		                        std::bind(&Connection::parseHeader, shared_from_this(), std::placeholders::_1));
 	} catch (boost::system::system_error& e) {
-		std::cout << "[Network error - Connection::parsePacket] " << e.what() << std::endl;
+		Logger::error() << "[Network error - Connection::parsePacket] " << e.what() << std::endl;
 		close(FORCE_CLOSE);
 	}
 }
@@ -268,7 +269,7 @@ void Connection::internalSend(const OutputMessage_ptr& msg)
 		                         boost::asio::buffer(msg->getOutputBuffer(), msg->getLength()),
 		                         std::bind(&Connection::onWriteOperation, shared_from_this(), std::placeholders::_1));
 	} catch (boost::system::system_error& e) {
-		std::cout << "[Network error - Connection::internalSend] " << e.what() << std::endl;
+		Logger::error() << "[Network error - Connection::internalSend] " << e.what() << std::endl;
 		close(FORCE_CLOSE);
 	}
 }

@@ -25,6 +25,7 @@
 #include "player.h"
 
 #include <set>
+#include "logger.h"
 
 Events::Events() :
 	scriptInterface("Event Interface")
@@ -54,8 +55,8 @@ bool Events::load()
 		if (res.second) {
 			const std::string& lowercase = asLowerCaseString(className);
 			if (scriptInterface.loadFile("data/events/scripts/" + lowercase + ".lua") != 0) {
-				std::cout << "[Warning - Events::load] Can not load script: " << lowercase << ".lua" << std::endl;
-				std::cout << scriptInterface.getLastLuaError() << std::endl;
+				Logger::warn() << "[Warning - Events::load] Can not load script: " << lowercase << ".lua" << std::endl;
+				Logger::info() << scriptInterface.getLastLuaError() << std::endl;
 			}
 		}
 
@@ -69,7 +70,7 @@ bool Events::load()
 			} else if (methodName == "onTargetCombat") {
 				info.creatureOnTargetCombat = event;
 			} else {
-				std::cout << "[Warning - Events::load] Unknown creature method: " << methodName << std::endl;
+				Logger::warn() << "[Warning - Events::load] Unknown creature method: " << methodName << std::endl;
 			}
 		} else if (className == "Party") {
 			if (methodName == "onJoin") {
@@ -79,7 +80,7 @@ bool Events::load()
 			} else if (methodName == "onDisband") {
 				info.partyOnDisband = event;
 			} else {
-				std::cout << "[Warning - Events::load] Unknown party method: " << methodName << std::endl;
+				Logger::warn() << "[Warning - Events::load] Unknown party method: " << methodName << std::endl;
 			}
 		} else if (className == "Player") {
 			if (methodName == "onLook") {
@@ -113,16 +114,16 @@ bool Events::load()
 			} else if (methodName == "onCombatSpell") {
 				info.playerOnCombatSpell = event;
 			} else {
-				std::cout << "[Warning - Events::load] Unknown player method: " << methodName << std::endl;
+				Logger::warn() << "[Warning - Events::load] Unknown player method: " << methodName << std::endl;
 			}
 		} else if (className == "Monster") {
 			if (methodName == "onSpawn") {
 				info.monsterOnSpawn = event;
 			} else {
-				std::cout << "[Warning - Events::load] Unknown monster method: " << methodName << std::endl;
+				Logger::warn() << "[Warning - Events::load] Unknown monster method: " << methodName << std::endl;
 			}
 		} else {
-			std::cout << "[Warning - Events::load] Unknown class: " << className << std::endl;
+			Logger::warn() << "[Warning - Events::load] Unknown class: " << className << std::endl;
 		}
 	}
 	return true;
@@ -137,7 +138,7 @@ bool Events::eventCreatureOnChangeOutfit(Creature* creature, const Outfit_t& out
 	}
 
 	if (!scriptInterface.reserveScriptEnv()) {
-		std::cout << "[Error - Events::eventCreatureOnChangeOutfit] Call stack overflow" << std::endl;
+		Logger::error() << "[Error - Events::eventCreatureOnChangeOutfit] Call stack overflow" << std::endl;
 		return false;
 	}
 
@@ -163,7 +164,7 @@ ReturnValue Events::eventCreatureOnAreaCombat(Creature* creature, Tile* tile, bo
 	}
 
 	if (!scriptInterface.reserveScriptEnv()) {
-		std::cout << "[Error - Events::eventCreatureOnAreaCombat] Call stack overflow" << std::endl;
+		Logger::error() << "[Error - Events::eventCreatureOnAreaCombat] Call stack overflow" << std::endl;
 		return RETURNVALUE_NOTPOSSIBLE;
 	}
 
@@ -206,7 +207,7 @@ ReturnValue Events::eventCreatureOnTargetCombat(Creature* creature, Creature* ta
 	}
 
 	if (!scriptInterface.reserveScriptEnv()) {
-		std::cout << "[Error - Events::eventCreatureOnTargetCombat] Call stack overflow" << std::endl;
+		Logger::error() << "[Error - Events::eventCreatureOnTargetCombat] Call stack overflow" << std::endl;
 		return RETURNVALUE_NOTPOSSIBLE;
 	}
 
@@ -248,7 +249,7 @@ bool Events::eventPartyOnJoin(Party* party, Player* player)
 	}
 
 	if (!scriptInterface.reserveScriptEnv()) {
-		std::cout << "[Error - Events::eventPartyOnJoin] Call stack overflow" << std::endl;
+		Logger::error() << "[Error - Events::eventPartyOnJoin] Call stack overflow" << std::endl;
 		return false;
 	}
 
@@ -275,7 +276,7 @@ bool Events::eventPartyOnLeave(Party* party, Player* player)
 	}
 
 	if (!scriptInterface.reserveScriptEnv()) {
-		std::cout << "[Error - Events::eventPartyOnLeave] Call stack overflow" << std::endl;
+		Logger::error() << "[Error - Events::eventPartyOnLeave] Call stack overflow" << std::endl;
 		return false;
 	}
 
@@ -302,7 +303,7 @@ bool Events::eventPartyOnDisband(Party* party)
 	}
 
 	if (!scriptInterface.reserveScriptEnv()) {
-		std::cout << "[Error - Events::eventPartyOnDisband] Call stack overflow" << std::endl;
+		Logger::error() << "[Error - Events::eventPartyOnDisband] Call stack overflow" << std::endl;
 		return false;
 	}
 
@@ -327,7 +328,7 @@ void Events::eventPlayerOnLook(Player* player, const Position& position, Thing* 
 	}
 
 	if (!scriptInterface.reserveScriptEnv()) {
-		std::cout << "[Error - Events::eventPlayerOnLook] Call stack overflow" << std::endl;
+		Logger::error() << "[Error - Events::eventPlayerOnLook] Call stack overflow" << std::endl;
 		return;
 	}
 
@@ -364,7 +365,7 @@ void Events::eventPlayerOnLookInBattleList(Player* player, Creature* creature, i
 	}
 
 	if (!scriptInterface.reserveScriptEnv()) {
-		std::cout << "[Error - Events::eventPlayerOnLookInBattleList] Call stack overflow" << std::endl;
+		Logger::error() << "[Error - Events::eventPlayerOnLookInBattleList] Call stack overflow" << std::endl;
 		return;
 	}
 
@@ -393,7 +394,7 @@ void Events::eventPlayerOnLookInTrade(Player* player, Player* partner, Item* ite
 	}
 
 	if (!scriptInterface.reserveScriptEnv()) {
-		std::cout << "[Error - Events::eventPlayerOnLookInTrade] Call stack overflow" << std::endl;
+		Logger::error() << "[Error - Events::eventPlayerOnLookInTrade] Call stack overflow" << std::endl;
 		return;
 	}
 
@@ -425,7 +426,7 @@ bool Events::eventPlayerOnLookInShop(Player* player, const ItemType* itemType, u
 	}
 
 	if (!scriptInterface.reserveScriptEnv()) {
-		std::cout << "[Error - Events::eventPlayerOnLookInShop] Call stack overflow" << std::endl;
+		Logger::error() << "[Error - Events::eventPlayerOnLookInShop] Call stack overflow" << std::endl;
 		return false;
 	}
 
@@ -454,7 +455,7 @@ bool Events::eventPlayerOnMoveItem(Player* player, Item* item, uint16_t count, c
 	}
 
 	if (!scriptInterface.reserveScriptEnv()) {
-		std::cout << "[Error - Events::eventPlayerOnMoveItem] Call stack overflow" << std::endl;
+		Logger::error() << "[Error - Events::eventPlayerOnMoveItem] Call stack overflow" << std::endl;
 		return false;
 	}
 
@@ -488,7 +489,7 @@ bool Events::eventPlayerOnMoveCreature(Player* player, Creature* creature, const
 	}
 
 	if (!scriptInterface.reserveScriptEnv()) {
-		std::cout << "[Error - Events::eventPlayerOnMoveCreature] Call stack overflow" << std::endl;
+		Logger::error() << "[Error - Events::eventPlayerOnMoveCreature] Call stack overflow" << std::endl;
 		return false;
 	}
 
@@ -518,7 +519,7 @@ bool Events::eventPlayerOnReport(Player* player, const std::string& message)
 	}
 
 	if (!scriptInterface.reserveScriptEnv()) {
-		std::cout << "[Error - Events::eventPlayerOnReport] Call stack overflow" << std::endl;
+		Logger::error() << "[Error - Events::eventPlayerOnReport] Call stack overflow" << std::endl;
 		return false;
 	}
 
@@ -544,7 +545,7 @@ bool Events::eventPlayerOnTurn(Player* player, Direction direction)
 	}
 
 	if (!scriptInterface.reserveScriptEnv()) {
-		std::cout << "[Error - Events::eventPlayerOnTurn] Call stack overflow" << std::endl;
+		Logger::error() << "[Error - Events::eventPlayerOnTurn] Call stack overflow" << std::endl;
 		return false;
 	}
 
@@ -570,7 +571,7 @@ bool Events::eventPlayerOnTradeRequest(Player* player, Player* target, Item* ite
 	}
 
 	if (!scriptInterface.reserveScriptEnv()) {
-		std::cout << "[Error - Events::eventPlayerOnTradeRequest] Call stack overflow" << std::endl;
+		Logger::error() << "[Error - Events::eventPlayerOnTradeRequest] Call stack overflow" << std::endl;
 		return false;
 	}
 
@@ -600,7 +601,7 @@ bool Events::eventPlayerOnTradeAccept(Player* player, Player* target, Item* item
 	}
 
 	if (!scriptInterface.reserveScriptEnv()) {
-		std::cout << "[Error - Events::eventPlayerOnTradeAccept] Call stack overflow" << std::endl;
+		Logger::error() << "[Error - Events::eventPlayerOnTradeAccept] Call stack overflow" << std::endl;
 		return false;
 	}
 
@@ -634,7 +635,7 @@ void Events::eventPlayerOnGainExperience(Player* player, Creature* source, uint6
 	}
 
 	if (!scriptInterface.reserveScriptEnv()) {
-		std::cout << "[Error - Events::eventPlayerOnGainExperience] Call stack overflow" << std::endl;
+		Logger::error() << "[Error - Events::eventPlayerOnGainExperience] Call stack overflow" << std::endl;
 		return;
 	}
 
@@ -675,7 +676,7 @@ void Events::eventPlayerOnLoseExperience(Player* player, uint64_t& exp)
 	}
 
 	if (!scriptInterface.reserveScriptEnv()) {
-		std::cout << "[Error - Events::eventPlayerOnLoseExperience] Call stack overflow" << std::endl;
+		Logger::error() << "[Error - Events::eventPlayerOnLoseExperience] Call stack overflow" << std::endl;
 		return;
 	}
 
@@ -708,7 +709,7 @@ void Events::eventPlayerOnGainSkillTries(Player* player, skills_t skill, uint64_
 	}
 
 	if (!scriptInterface.reserveScriptEnv()) {
-		std::cout << "[Error - Events::eventPlayerOnGainSkillTries] Call stack overflow" << std::endl;
+		Logger::error() << "[Error - Events::eventPlayerOnGainSkillTries] Call stack overflow" << std::endl;
 		return;
 	}
 
@@ -742,7 +743,7 @@ void Events::eventPlayerOnUseWeapon(Player* player, int32_t& normalDamage, Comba
 	}
 
 	if (!scriptInterface.reserveScriptEnv()) {
-		std::cout << "[Error - Events::eventPlayerOnUseWeapon] Call stack overflow" << std::endl;
+		Logger::error() << "[Error - Events::eventPlayerOnUseWeapon] Call stack overflow" << std::endl;
 		return;
 	}
 
@@ -779,7 +780,7 @@ void Events::eventPlayerOnCombatSpell(Player* player, int32_t& normalDamage, int
 	}
 
 	if (!scriptInterface.reserveScriptEnv()) {
-		std::cout << "[Error - Events::eventPlayerOnCombatSpell] Call stack overflow" << std::endl;
+		Logger::error() << "[Error - Events::eventPlayerOnCombatSpell] Call stack overflow" << std::endl;
 		return;
 	}
 
@@ -817,7 +818,7 @@ void Events::eventMonsterOnSpawn(Monster* monster, const Position& position)
 	}
 
 	if (!scriptInterface.reserveScriptEnv()) {
-		std::cout << "[Error - Events::eventMonsterOnSpawn] Call stack overflow" << std::endl;
+		Logger::error() << "[Error - Events::eventMonsterOnSpawn] Call stack overflow" << std::endl;
 		return;
 	}
 

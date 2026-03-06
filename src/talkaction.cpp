@@ -22,6 +22,7 @@
 #include "player.h"
 #include "talkaction.h"
 #include "pugicast.h"
+#include "logger.h"
 
 TalkActions::TalkActions()
 	: scriptInterface("TalkAction Interface")
@@ -109,7 +110,7 @@ bool TalkAction::configureEvent(const pugi::xml_node& node)
 {
 	pugi::xml_attribute wordsAttribute = node.attribute("words");
 	if (!wordsAttribute) {
-		std::cout << "[Error - TalkAction::configureEvent] Missing words for talk action or spell" << std::endl;
+		Logger::error() << "[Error - TalkAction::configureEvent] Missing words for talk action or spell" << std::endl;
 		return false;
 	}
 
@@ -131,7 +132,7 @@ bool TalkAction::executeSay(Player* player, const std::string& param, SpeakClass
 {
 	//onSay(player, words, param, type)
 	if (!scriptInterface->reserveScriptEnv()) {
-		std::cout << "[Error - TalkAction::executeSay] Call stack overflow" << std::endl;
+		Logger::error() << "[Error - TalkAction::executeSay] Call stack overflow" << std::endl;
 		return false;
 	}
 

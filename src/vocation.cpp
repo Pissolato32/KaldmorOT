@@ -23,6 +23,7 @@
 
 #include "pugicast.h"
 #include "tools.h"
+#include "logger.h"
 
 bool Vocations::loadFromXml()
 {
@@ -36,7 +37,7 @@ bool Vocations::loadFromXml()
 	for (auto vocationNode : doc.child("vocations").children()) {
 		pugi::xml_attribute attr;
 		if (!(attr = vocationNode.attribute("id"))) {
-			std::cout << "[Warning - Vocations::loadFromXml] Missing vocation id" << std::endl;
+			Logger::warn() << "[Warning - Vocations::loadFromXml] Missing vocation id" << std::endl;
 			continue;
 		}
 
@@ -118,10 +119,10 @@ bool Vocations::loadFromXml()
 					if (skill_id <= SKILL_LAST) {
 						voc.skillMultipliers[skill_id] = pugi::cast<float>(childNode.attribute("multiplier").value());
 					} else {
-						std::cout << "[Notice - Vocations::loadFromXml] No valid skill id: " << skill_id << " for vocation: " << voc.id << std::endl;
+						Logger::info() << "[Notice - Vocations::loadFromXml] No valid skill id: " << skill_id << " for vocation: " << voc.id << std::endl;
 					}
 				} else {
-					std::cout << "[Notice - Vocations::loadFromXml] Missing skill id for vocation: " << voc.id << std::endl;
+					Logger::info() << "[Notice - Vocations::loadFromXml] Missing skill id for vocation: " << voc.id << std::endl;
 				}
 			} else if (strcasecmp(childNode.name(), "formula") == 0) {
 				pugi::xml_attribute meleeDamageAttribute = childNode.attribute("meleeDamage");
@@ -153,7 +154,7 @@ Vocation* Vocations::getVocation(uint16_t id)
 {
 	auto it = vocationsMap.find(id);
 	if (it == vocationsMap.end()) {
-		std::cout << "[Warning - Vocations::getVocation] Vocation " << id << " not found." << std::endl;
+		Logger::warn() << "[Warning - Vocations::getVocation] Vocation " << id << " not found." << std::endl;
 		return nullptr;
 	}
 	return &it->second;

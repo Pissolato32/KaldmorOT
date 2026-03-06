@@ -34,6 +34,7 @@
 #include "databasemanager.h"
 #include "scheduler.h"
 #include "databasetasks.h"
+#include "logger.h"
 
 DatabaseTasks g_databaseTasks;
 Dispatcher g_dispatcher;
@@ -53,7 +54,7 @@ std::unique_lock<std::mutex> g_loaderUniqueLock(g_loaderLock);
 
 void startupErrorMessage(const std::string& errorStr)
 {
-	std::cout << "> ERROR: " << errorStr << std::endl;
+	Logger::error() << "> ERROR: " << errorStr << std::endl;
 	g_loaderSignal.notify_all();
 }
 
@@ -69,6 +70,8 @@ void badAllocationHandler()
 
 int main(int argc, char* argv[])
 {
+	Logger::init();
+
 	// Setup bad allocation handler
 	std::set_new_handler(badAllocationHandler);
 
@@ -82,10 +85,10 @@ int main(int argc, char* argv[])
 	g_loaderSignal.wait(g_loaderUniqueLock);
 
 	if (serviceManager.is_running()) {
-		std::cout << ">> " << g_config.getString(ConfigManager::SERVER_NAME) << " Server Online!" << std::endl << std::endl;
+		Logger::info() << ">> " << g_config.getString(ConfigManager::SERVER_NAME) << " Server Online!" << std::endl << std::endl;
 		serviceManager.run();
 	} else {
-		std::cout << ">> No services running. The server is NOT online." << std::endl;
+		Logger::warn() << ">> No services running. The server is NOT online." << std::endl;
 		g_scheduler.shutdown();
 		g_databaseTasks.shutdown();
 		g_dispatcher.shutdown();
@@ -94,6 +97,8 @@ int main(int argc, char* argv[])
 	g_scheduler.join();
 	g_databaseTasks.join();
 	g_dispatcher.join();
+	
+	Logger::shutdown();
 	return 0;
 }
 
@@ -106,24 +111,24 @@ void mainLoader(int argc, char* argv[], ServiceManager* services)
 #ifdef _WIN32
 	SetConsoleTitle(STATUS_SERVER_NAME);
 #endif
-	std::cout << "The " << STATUS_SERVER_NAME << " Global - Version: (" << STATUS_SERVER_VERSION << "." << MINOR_VERSION << " . " << REVISION_VERSION << ") - Codename: ( " << SOFTWARE_CODENAME << " )" << std::endl;
-	std::cout << "Compiled with: " << BOOST_COMPILER << std::endl;
-	std::cout << "Compiled on " << __DATE__ << ' ' << __TIME__ << " for platform ";
+	Logger::info() << "The " << STATUS_SERVER_NAME << " Global - Version: (" << STATUS_SERVER_VERSION << "." << MINOR_VERSION << " . " << REVISION_VERSION << ") - Codename: ( " << SOFTWARE_CODENAME << " )" << std::endl;
+	Logger::info() << "Compiled with: " << BOOST_COMPILER << std::endl;
+	Logger::info() << "Compiled on " << __DATE__ << ' ' << __TIME__ << " for platform ";
 
 #if defined(__amd64__) || defined(_M_X64)
-	std::cout << "x64" << std::endl;
+	Logger::info() << "x64" << std::endl;
 #elif defined(__i386__) || defined(_M_IX86) || defined(_X86_)
-	std::cout << "x86" << std::endl;
+	Logger::info() << "x86" << std::endl;
 #elif defined(__arm__)
-	std::cout << "ARM" << std::endl;
+	Logger::info() << "ARM" << std::endl;
 #else
-	std::cout << "unknown" << std::endl;
+	Logger::info() << "unknown" << std::endl;
 #endif
-	std::cout << std::endl;
+	Logger::info() << std::endl;
 
-	std::cout << "" << STATUS_SERVER_DEVELOPERS << "." << std::endl;
-	std::cout << "" << GIT_REPO <<"." << std::endl;
-	std::cout << std::endl;
+	Logger::info() << "" << STATUS_SERVER_DEVELOPERS << "." << std::endl;
+	Logger::info() << "" << GIT_REPO <<"." << std::endl;
+	Logger::info() << std::endl;
 
 	for (int i = 1; i < argc; ++i) {
 		std::string param = argv[i];
@@ -133,7 +138,7 @@ void mainLoader(int argc, char* argv[], ServiceManager* services)
 	}
 
 	// read global config
-	std::cout << ">> Loading config: " << g_config.getConfigFileLua() << std::endl;
+	Logger::info() << ">> Loading config: " << g_config.getConfigFileLua() << std::endl;
 	if (!g_config.load()) {
 		startupErrorMessage("Unable to load Config File!");
 		return;
@@ -153,17 +158,17 @@ void mainLoader(int argc, char* argv[], ServiceManager* services)
 	const char* q("7630979195970404721891201847792002125535401292779123937207447574596692788513647179235335529307251350570728407373705564708871762033017096809910315212884101");
 	g_RSA.setKey(p, q);
 
-	std::cout << ">> Establishing database connection..." << std::flush;
+	Logger::info() << ">> Establishing database connection..." << std::flush;
 
 	if (!Database::getInstance().connect()) {
 		startupErrorMessage("Failed to connect to database.");
 		return;
 	}
 
-	std::cout << " MySQL " << Database::getClientVersion() << std::endl;
+	Logger::info() << " MySQL " << Database::getClientVersion() << std::endl;
 
 	// run database manager
-	std::cout << ">> Running database manager" << std::endl;
+	Logger::info() << ">> Running database manager" << std::endl;
 
 	if (!DatabaseManager::isDatabaseSetup()) {
 		startupErrorMessage("The database you have specified in config lua file is empty, please import the schema.sql to your database.");
@@ -174,18 +179,18 @@ void mainLoader(int argc, char* argv[], ServiceManager* services)
 	DatabaseManager::updateDatabase();
 
 	if (g_config.getBoolean(ConfigManager::OPTIMIZE_DATABASE) && !DatabaseManager::optimizeTables()) {
-		std::cout << "> No tables were optimized." << std::endl;
+		Logger::warn() << "> No tables were optimized." << std::endl;
 	}
 
 	//load vocations
-	std::cout << ">> Loading vocations" << std::endl;
+	Logger::info() << ">> Loading vocations" << std::endl;
 	if (!g_vocations.loadFromXml()) {
 		startupErrorMessage("Unable to load vocations!");
 		return;
 	}
 
 	// load item data
-	std::cout << ">> Loading items" << std::endl;
+	Logger::info() << ">> Loading items" << std::endl;
 	if (Item::items.loadFromOtb("data/items/items.otb") != ERROR_NONE) {
 		startupErrorMessage("Unable to load items (OTB)!");
 		return;
@@ -196,25 +201,25 @@ void mainLoader(int argc, char* argv[], ServiceManager* services)
 		return;
 	}
 
-	std::cout << ">> Loading script systems" << std::endl;
+	Logger::info() << ">> Loading script systems" << std::endl;
 	if (!ScriptingManager::getInstance().loadScriptSystems()) {
 		startupErrorMessage("Failed to load script systems");
 		return;
 	}
 
-	std::cout << ">> Loading monsters" << std::endl;
+	Logger::info() << ">> Loading monsters" << std::endl;
 	if (!g_monsters.loadFromXml()) {
 		startupErrorMessage("Unable to load monsters!");
 		return;
 	}
 
-	std::cout << ">> Loading outfits" << std::endl;
+	Logger::info() << ">> Loading outfits" << std::endl;
 	if (!Outfits::getInstance().loadFromXml()) {
 		startupErrorMessage("Unable to load outfits!");
 		return;
 	}
 
-	std::cout << ">> Checking world type... " << std::flush;
+	Logger::info() << ">> Checking world type... " << std::flush;
 	std::string worldType = asLowerCaseString(g_config.getString(ConfigManager::WORLD_TYPE));
 	if (worldType == "pvp") {
 		g_game.setWorldType(WORLD_TYPE_PVP);
@@ -223,22 +228,22 @@ void mainLoader(int argc, char* argv[], ServiceManager* services)
 	} else if (worldType == "pvp-enforced") {
 		g_game.setWorldType(WORLD_TYPE_PVP_ENFORCED);
 	} else {
-		std::cout << std::endl;
+		Logger::info() << std::endl;
 
 		std::ostringstream ss;
 		ss << "> ERROR: Unknown world type: " << g_config.getString(ConfigManager::WORLD_TYPE) << ", valid world types are: pvp, no-pvp and pvp-enforced.";
 		startupErrorMessage(ss.str());
 		return;
 	}
-	std::cout << asUpperCaseString(worldType) << std::endl;
+	Logger::info() << asUpperCaseString(worldType) << std::endl;
 
-	std::cout << ">> Loading map" << std::endl;
+	Logger::info() << ">> Loading map" << std::endl;
 	if (!g_game.loadMainMap(g_config.getString(ConfigManager::MAP_NAME))) {
 		startupErrorMessage("Failed to load map");
 		return;
 	}
 
-	std::cout << ">> Initializing gamestate" << std::endl;
+	Logger::info() << ">> Initializing gamestate" << std::endl;
 	g_game.setGameState(GAME_STATE_INIT);
 
 	// Game client protocols
@@ -274,7 +279,7 @@ void mainLoader(int argc, char* argv[], ServiceManager* services)
 
 	g_game.map.houses.payHouses(rentPeriod);
 
-	std::cout << ">> Loaded all modules, server starting up..." << std::endl;
+	Logger::info() << ">> Loaded all modules, server starting up..." << std::endl;
 
 	// Resolve the configured public IP first (from config.lua)
 	// This MUST be first so clients always get the correct IP to connect to the game server.
@@ -324,7 +329,7 @@ void mainLoader(int argc, char* argv[], ServiceManager* services)
 
 #ifndef _WIN32
 	if (getuid() == 0 || geteuid() == 0) {
-		std::cout << "> Warning: " << STATUS_SERVER_NAME << " has been executed as root user, please consider running it as a normal user." << std::endl;
+		Logger::warn() << "> Warning: " << STATUS_SERVER_NAME << " has been executed as root user, please consider running it as a normal user." << std::endl;
 	}
 #endif
 

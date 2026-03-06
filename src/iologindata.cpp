@@ -24,6 +24,7 @@
 #include "iologindata.h"
 #include "configmanager.h"
 #include "game.h"
+#include "logger.h"
 
 extern ConfigManager g_config;
 extern Game g_game;
@@ -176,7 +177,7 @@ bool IOLoginData::preloadPlayer(Player* player, const std::string& name)
 	player->setGUID(result->getNumber<uint32_t>("id"));
 	Group* group = g_game.groups.getGroup(result->getNumber<uint16_t>("group_id"));
 	if (!group) {
-		std::cout << "[Error - IOLoginData::preloadPlayer] " << player->name << " has Group ID " << result->getNumber<uint16_t>("group_id") << " which doesn't exist." << std::endl;
+		Logger::error() << "[Error - IOLoginData::preloadPlayer] " << player->name << " has Group ID " << result->getNumber<uint16_t>("group_id") << " which doesn't exist." << std::endl;
 		return false;
 	}
 	player->setGroup(group);
@@ -233,7 +234,7 @@ bool IOLoginData::loadPlayer(Player* player, DBResult_ptr result)
 
 	Group* group = g_game.groups.getGroup(result->getNumber<uint16_t>("group_id"));
 	if (!group) {
-		std::cout << "[Error - IOLoginData::loadPlayer] " << player->name << " has Group ID " << result->getNumber<uint16_t>("group_id") << " which doesn't exist" << std::endl;
+		Logger::error() << "[Error - IOLoginData::loadPlayer] " << player->name << " has Group ID " << result->getNumber<uint16_t>("group_id") << " which doesn't exist" << std::endl;
 		return false;
 	}
 	player->setGroup(group);
@@ -281,7 +282,7 @@ bool IOLoginData::loadPlayer(Player* player, DBResult_ptr result)
 	}
 
 	if (!player->setVocation(result->getNumber<uint16_t>("vocation"))) {
-		std::cout << "[Error - IOLoginData::loadPlayer] " << player->name << " has Vocation ID " << result->getNumber<uint16_t>("vocation") << " which doesn't exist" << std::endl;
+		Logger::error() << "[Error - IOLoginData::loadPlayer] " << player->name << " has Vocation ID " << result->getNumber<uint16_t>("vocation") << " which doesn't exist" << std::endl;
 		return false;
 	}
 
@@ -336,7 +337,7 @@ bool IOLoginData::loadPlayer(Player* player, DBResult_ptr result)
 
 	Town* town = g_game.map.towns.getTown(result->getNumber<uint32_t>("town_id"));
 	if (!town) {
-		std::cout << "[Error - IOLoginData::loadPlayer] " << player->name << " has Town ID " << result->getNumber<uint32_t>("town_id") << " which doesn't exist" << std::endl;
+		Logger::error() << "[Error - IOLoginData::loadPlayer] " << player->name << " has Town ID " << result->getNumber<uint32_t>("town_id") << " which doesn't exist" << std::endl;
 		return false;
 	}
 
@@ -1004,7 +1005,7 @@ void IOLoginData::loadItems(ItemMap& itemMap, DBResult_ptr result)
 				// Inserting it into the map would add a broken item into the player's
 				// inventory, potentially crashing the server or duping attributes.
 				// We release the item and skip it so only valid items are loaded.
-				std::cout << "[Warning - IOLoginData::loadItems] Failed to unserialize "
+				Logger::error() << "[Warning - IOLoginData::loadItems] Failed to unserialize "
 				          << "item type=" << type << " sid=" << sid
 				          << " pid=" << pid << " — skipping." << std::endl;
 				delete item;

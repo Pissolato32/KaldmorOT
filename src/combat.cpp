@@ -25,6 +25,7 @@
 #include "weapons.h"
 #include "configmanager.h"
 #include "events.h"
+#include "logger.h"
 
 extern Game g_game;
 extern Weapons* g_weapons;
@@ -893,7 +894,7 @@ void ValueCallback::getMinMaxValues(Player* player, CombatDamage& damage, bool u
 {
 	//onGetPlayerMinMaxValues(...)
 	if (!scriptInterface->reserveScriptEnv()) {
-		std::cout << "[Error - ValueCallback::getMinMaxValues] Call stack overflow" << std::endl;
+		Logger::error() << "[Error - ValueCallback::getMinMaxValues] Call stack overflow" << std::endl;
 		return;
 	}
 
@@ -953,7 +954,7 @@ void ValueCallback::getMinMaxValues(Player* player, CombatDamage& damage, bool u
 		}
 
 		default: {
-			std::cout << "ValueCallback::getMinMaxValues - unknown callback type" << std::endl;
+			Logger::info() << "ValueCallback::getMinMaxValues - unknown callback type" << std::endl;
 			scriptInterface->resetScriptEnv();
 			return;
 		}
@@ -983,7 +984,7 @@ void TileCallback::onTileCombat(Creature* creature, Tile* tile) const
 {
 	//onTileCombat(creature, pos)
 	if (!scriptInterface->reserveScriptEnv()) {
-		std::cout << "[Error - TileCallback::onTileCombat] Call stack overflow" << std::endl;
+		Logger::error() << "[Error - TileCallback::onTileCombat] Call stack overflow" << std::endl;
 		return;
 	}
 
@@ -1013,7 +1014,7 @@ void TargetCallback::onTargetCombat(Creature* creature, Creature* target) const
 {
 	//onTargetCombat(creature, target)
 	if (!scriptInterface->reserveScriptEnv()) {
-		std::cout << "[Error - TargetCallback::onTargetCombat] Call stack overflow" << std::endl;
+		Logger::error() << "[Error - TargetCallback::onTargetCombat] Call stack overflow" << std::endl;
 		return;
 	}
 

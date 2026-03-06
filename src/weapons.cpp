@@ -24,6 +24,7 @@
 #include "game.h"
 #include "pugicast.h"
 #include "weapons.h"
+#include "logger.h"
 
 extern Game g_game;
 extern Vocations g_vocations;
@@ -127,7 +128,7 @@ bool Weapons::registerEvent(Event* event, const pugi::xml_node&)
 
 	auto result = weapons.emplace(weapon->getID(), weapon);
 	if (!result.second) {
-		std::cout << "[Warning - Weapons::registerEvent] Duplicate registered item with id: " << weapon->getID() << std::endl;
+		Logger::warn() << "[Warning - Weapons::registerEvent] Duplicate registered item with id: " << weapon->getID() << std::endl;
 	}
 	return result.second;
 }
@@ -148,7 +149,7 @@ bool Weapon::configureEvent(const pugi::xml_node& node)
 {
 	pugi::xml_attribute attr;
 	if (!(attr = node.attribute("id"))) {
-		std::cout << "[Error - Weapon::configureEvent] Weapon without id." << std::endl;
+		Logger::error() << "[Error - Weapon::configureEvent] Weapon without id." << std::endl;
 		return false;
 	}
 	id = pugi::cast<uint16_t>(attr.value());
@@ -184,7 +185,7 @@ bool Weapon::configureEvent(const pugi::xml_node& node)
 	if ((attr = node.attribute("action"))) {
 		action = getWeaponAction(asLowerCaseString(attr.as_string()));
 		if (action == WEAPONACTION_NONE) {
-			std::cout << "[Warning - Weapon::configureEvent] Unknown action " << attr.as_string() << std::endl;
+			Logger::warn() << "[Warning - Weapon::configureEvent] Unknown action " << attr.as_string() << std::endl;
 		}
 	}
 
@@ -466,7 +467,7 @@ bool Weapon::executeUseWeapon(Player* player, const LuaVariant& var) const
 {
 	//onUseWeapon(player, var)
 	if (!scriptInterface->reserveScriptEnv()) {
-		std::cout << "[Error - Weapon::executeUseWeapon] Call stack overflow" << std::endl;
+		Logger::error() << "[Error - Weapon::executeUseWeapon] Call stack overflow" << std::endl;
 		return false;
 	}
 
@@ -888,7 +889,7 @@ bool WeaponWand::configureEvent(const pugi::xml_node& node)
 		} else if (tmpStrValue == "holy") {
 			params.combatType = COMBAT_HOLYDAMAGE;
 		} else {
-			std::cout << "[Warning - WeaponWand::configureEvent] Type \"" << attr.as_string() << "\" does not exist." << std::endl;
+			Logger::warn() << "[Warning - WeaponWand::configureEvent] Type \"" << attr.as_string() << "\" does not exist." << std::endl;
 		}
 	}
 	return true;

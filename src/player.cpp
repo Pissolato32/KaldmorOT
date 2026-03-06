@@ -33,6 +33,7 @@
 #include "movement.h"
 #include "scheduler.h"
 #include "weapons.h"
+#include "logger.h"
 
 extern ConfigManager g_config;
 extern Game g_game;
@@ -622,7 +623,7 @@ void Player::addStorageValue(const uint32_t key, const int32_t value, const bool
 			);
 			return;
 		} else {
-			std::cout << "Warning: unknown reserved key: " << key << " player: " << getName() << std::endl;
+			Logger::warn() << "Warning: unknown reserved key: " << key << " player: " << getName() << std::endl;
 			return;
 		}
 	}
@@ -1080,7 +1081,7 @@ void Player::onCreatureAppear(Creature* creature, bool isLogin)
 			bed->wakeUp(this);
 		}
 
-		std::cout << name << " has logged in." << std::endl;
+		Logger::info() << name << " has logged in." << std::endl;
 
 		if (guild) {
 			guild->addMember(this);
@@ -1191,7 +1192,7 @@ void Player::onRemoveCreature(Creature* creature, bool isLogout)
 
 		g_chat->removeUserFromAllChannels(*this);
 
-		std::cout << getName() << " has logged out." << std::endl;
+		Logger::info() << getName() << " has logged out." << std::endl;
 
 		if (guild) {
 			guild->removeMember(this);
@@ -1208,7 +1209,7 @@ void Player::onRemoveCreature(Creature* creature, bool isLogout)
 		}
 
 		if (!saved) {
-			std::cout << "Error while saving player: " << getName() << std::endl;
+			Logger::info() << "Error while saving player: " << getName() << std::endl;
 		}
 	}
 }
