@@ -35,7 +35,7 @@ class AccessList
 	public:
 		void parseList(const std::string& list);
 		void addPlayer(const std::string& name);
-		void addGuild(const std::string& name, uint32_t rankLevel = 0);
+		void addGuild(uint32_t guildId, uint32_t rankLevel = 0);
 		void addExpression(const std::string& expression);
 
 		bool isInList(const Player* player);
