@@ -86,3 +86,27 @@ void DepotChest::postRemoveNotification(Thing* thing, const Cylinder* newParent,
 		parent->postRemoveNotification(thing, newParent, index, LINK_PARENT);
 	}
 }
+
+void DepotChest::internalAddThing(Thing* thing)
+{
+	Container::internalAddThing(thing);
+	if (const Item* item = thing->getItem()) {
+		if (const Container* container = item->getContainer()) {
+			updateCount(container->getItemHoldingCount() + 1);
+		} else {
+			updateCount(1);
+		}
+	}
+}
+
+void DepotChest::internalAddThing(uint32_t index, Thing* thing)
+{
+	Container::internalAddThing(index, thing);
+	if (const Item* item = thing->getItem()) {
+		if (const Container* container = item->getContainer()) {
+			updateCount(container->getItemHoldingCount() + 1);
+		} else {
+			updateCount(1);
+		}
+	}
+}

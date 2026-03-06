@@ -46,6 +46,9 @@ class DepotChest final : public Container
 			return childCount;
 		}
 
+		void internalAddThing(Thing* thing) override;
+		void internalAddThing(uint32_t index, Thing* thing) override;
+
 		//overrides
 		bool canRemove() const {
 			return false;

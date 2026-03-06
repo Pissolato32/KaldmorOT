@@ -26,7 +26,8 @@ public:
 		return *this;
 	}
 	
-	LogMessage& operator<<(std::ostream& (*)(std::ostream&)) {
+	LogMessage& operator<<(std::ostream& (*f)(std::ostream&)) {
+		f(m_buffer);
 		return *this;
 	}
 

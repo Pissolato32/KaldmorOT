@@ -13,7 +13,7 @@ void Logger::init()
 	try {
 		boost::filesystem::create_directory("logs");
 
-		// Enble async mode for all loggers created after this point
+		// Enable async mode for all loggers created after this point
 #ifndef _WIN32
 		spdlog::set_async_mode(8192);
 #endif
