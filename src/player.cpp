@@ -2112,7 +2112,7 @@ void Player::addHealExhaust(uint32_t ticks)
 	addCondition(condition);
 }
 
-void Player::addInFightTicks(bool pzlock /*= false*/)
+void Player::addInFightTicks(bool pzlock /*= false*/, int32_t ticks /*= 0*/)
 {
 	if (hasFlag(PlayerFlag_NotGainInFight)) {
 		return;
@@ -2123,7 +2123,8 @@ void Player::addInFightTicks(bool pzlock /*= false*/)
 		sendIcons();
 	}
 
-	Condition* condition = Condition::createCondition(CONDITIONID_DEFAULT, CONDITION_INFIGHT, g_config.getNumber(ConfigManager::PZ_LOCKED), 0);
+	int32_t conditionTicks = ticks > 0 ? ticks : g_config.getNumber(ConfigManager::PZ_LOCKED);
+	Condition* condition = Condition::createCondition(CONDITIONID_DEFAULT, CONDITION_INFIGHT, conditionTicks, 0);
 	addCondition(condition);
 }
 
