@@ -512,6 +512,24 @@ Attr_ReadValue Item::readAttr(AttrTypes_t attr, PropStream& propStream)
 			break;
 		}
 
+		case ATTR_SLEEPSTART: {
+			uint32_t sleepStart;
+			if (!propStream.read<uint32_t>(sleepStart)) {
+				return ATTR_READ_ERROR;
+			}
+			getAttributes()->setIntAttr(ITEM_ATTRIBUTE_SLEEPSTART, sleepStart);
+			break;
+		}
+
+		case ATTR_SLEEPSTART_64: {
+			uint64_t sleepStart;
+			if (!propStream.read<uint64_t>(sleepStart)) {
+				return ATTR_READ_ERROR;
+			}
+			getAttributes()->setIntAttr(ITEM_ATTRIBUTE_SLEEPSTART, sleepStart);
+			break;
+		}
+
 		case ATTR_ATTACK: {
 			int32_t attack;
 			if (!propStream.read<int32_t>(attack)) {
@@ -594,13 +612,6 @@ Attr_ReadValue Item::readAttr(AttrTypes_t attr, PropStream& propStream)
 
 		//Bed class
 		case ATTR_SLEEPERGUID: {
-			if (!propStream.skip(4)) {
-				return ATTR_READ_ERROR;
-			}
-			break;
-		}
-
-		case ATTR_SLEEPSTART: {
 			if (!propStream.skip(4)) {
 				return ATTR_READ_ERROR;
 			}

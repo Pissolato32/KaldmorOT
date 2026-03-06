@@ -20,6 +20,7 @@
 #ifndef FS_LUASCRIPT_H_5344B2BC907E46E3943EA78574A212D8
 #define FS_LUASCRIPT_H_5344B2BC907E46E3943EA78574A212D8
 
+#include <set>
 #include <lua.hpp>
 
 #if LUA_VERSION_NUM >= 502
@@ -195,7 +196,7 @@ enum ErrorCode_t {
 class LuaScriptInterface
 {
 	public:
-		explicit LuaScriptInterface(std::string interfaceName);
+		explicit LuaScriptInterface(std::string interfaceName, LuaScriptInterface* parentInterface = nullptr);
 		virtual ~LuaScriptInterface();
 
 		// non-copyable
@@ -204,6 +205,8 @@ class LuaScriptInterface
 
 		virtual bool initState();
 		bool reInitState();
+		void addChildInterface(LuaScriptInterface* childInterface);
+		void removeChildInterface(LuaScriptInterface* childInterface);
 
 		int32_t loadFile(const std::string& file, Npc* npc = nullptr);
 
@@ -1274,6 +1277,9 @@ class LuaScriptInterface
 
 		//script file cache
 		std::map<int32_t, std::string> cacheFiles;
+
+		LuaScriptInterface* parentInterface = nullptr;
+		std::set<LuaScriptInterface*> childInterfaces;
 };
 
 class LuaEnvironment : public LuaScriptInterface

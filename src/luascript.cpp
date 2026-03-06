@@ -257,25 +257,47 @@ std::string LuaScriptInterface::getErrorDesc(ErrorCode_t code)
 ScriptEnvironment LuaScriptInterface::scriptEnv[16];
 int32_t LuaScriptInterface::scriptEnvIndex = -1;
 
-LuaScriptInterface::LuaScriptInterface(std::string interfaceName) : interfaceName(std::move(interfaceName))
+LuaScriptInterface::LuaScriptInterface(std::string interfaceName, LuaScriptInterface* parentInterface) : interfaceName(std::move(interfaceName)), parentInterface(parentInterface)
 {
 	if (!g_luaEnvironment.getLuaState()) {
 		g_luaEnvironment.initState();
+	}
+
+	if (parentInterface) {
+		parentInterface->addChildInterface(this);
 	}
 }
 
 LuaScriptInterface::~LuaScriptInterface()
 {
+	if (parentInterface) {
+		parentInterface->removeChildInterface(this);
+	}
+
 	closeState();
 }
 
 bool LuaScriptInterface::reInitState()
 {
+	for (auto childInterface : childInterfaces) {
+		childInterface->reInitState();
+	}
+
 	g_luaEnvironment.clearCombatObjects(this);
 	g_luaEnvironment.clearAreaObjects(this);
 
 	closeState();
 	return initState();
+}
+
+void LuaScriptInterface::addChildInterface(LuaScriptInterface* childInterface)
+{
+	childInterfaces.insert(childInterface);
+}
+
+void LuaScriptInterface::removeChildInterface(LuaScriptInterface* childInterface)
+{
+	childInterfaces.erase(childInterface);
 }
 
 /// Same as lua_pcall, but adds stack trace to error strings in called function.
