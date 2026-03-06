@@ -51,7 +51,7 @@ class GlobalEvents final : public BaseEvents
 		void think();
 		void execute(GlobalEvent_t type) const;
 
-		GlobalEventMap getEventMap(GlobalEvent_t type);
+		const GlobalEventMap& getEventMap(GlobalEvent_t type) const;
 		static void clearMap(GlobalEventMap& map);
 
 	protected:
@@ -68,7 +68,8 @@ class GlobalEvents final : public BaseEvents
 		}
 		LuaScriptInterface scriptInterface;
 
-		GlobalEventMap thinkMap, serverMap, timerMap;
+		GlobalEventMap thinkMap, timerMap;
+		GlobalEventMap startupMap, shutdownMap, recordMap;
 		int32_t thinkEventId = 0, timerEventId = 0;
 };
 

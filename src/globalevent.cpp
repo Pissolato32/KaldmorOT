@@ -55,8 +55,10 @@ void GlobalEvents::clear()
 	timerEventId = 0;
 
 	clearMap(thinkMap);
-	clearMap(serverMap);
 	clearMap(timerMap);
+	clearMap(startupMap);
+	clearMap(shutdownMap);
+	clearMap(recordMap);
 
 	scriptInterface.reInitState();
 }
@@ -80,8 +82,18 @@ bool GlobalEvents::registerEvent(Event* event, const pugi::xml_node&)
 			}
 			return true;
 		}
-	} else if (globalEvent->getEventType() != GLOBALEVENT_NONE) {
-		auto result = serverMap.emplace(globalEvent->getName(), globalEvent);
+	} else if (globalEvent->getEventType() == GLOBALEVENT_STARTUP) {
+		auto result = startupMap.emplace(globalEvent->getName(), globalEvent);
+		if (result.second) {
+			return true;
+		}
+	} else if (globalEvent->getEventType() == GLOBALEVENT_SHUTDOWN) {
+		auto result = shutdownMap.emplace(globalEvent->getName(), globalEvent);
+		if (result.second) {
+			return true;
+		}
+	} else if (globalEvent->getEventType() == GLOBALEVENT_RECORD) {
+		auto result = recordMap.emplace(globalEvent->getName(), globalEvent);
 		if (result.second) {
 			return true;
 		}
@@ -180,31 +192,23 @@ void GlobalEvents::think()
 
 void GlobalEvents::execute(GlobalEvent_t type) const
 {
-	for (const auto& it : serverMap) {
-		GlobalEvent* globalEvent = it.second;
-		if (globalEvent->getEventType() == type) {
-			globalEvent->executeEvent();
-		}
+	for (const auto& it : getEventMap(type)) {
+		it.second->executeEvent();
 	}
 }
 
-GlobalEventMap GlobalEvents::getEventMap(GlobalEvent_t type)
+const GlobalEventMap& GlobalEvents::getEventMap(GlobalEvent_t type) const
 {
 	switch (type) {
 		case GLOBALEVENT_NONE: return thinkMap;
 		case GLOBALEVENT_TIMER: return timerMap;
-		case GLOBALEVENT_STARTUP:
-		case GLOBALEVENT_SHUTDOWN:
-		case GLOBALEVENT_RECORD: {
-			GlobalEventMap retMap;
-			for (const auto& it : serverMap) {
-				if (it.second->getEventType() == type) {
-					retMap[it.first] = it.second;
-				}
-			}
-			return retMap;
+		case GLOBALEVENT_STARTUP: return startupMap;
+		case GLOBALEVENT_SHUTDOWN: return shutdownMap;
+		case GLOBALEVENT_RECORD: return recordMap;
+		default: {
+			static const GlobalEventMap emptyMap;
+			return emptyMap;
 		}
-		default: return GlobalEventMap();
 	}
 }
 
