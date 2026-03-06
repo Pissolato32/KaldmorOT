@@ -1,4 +1,4 @@
-/**
+﻿/**
  * The Forgotten Server - a free and open-source MMORPG server emulator
  * Copyright (C) 2017  Mark Samman <mark.samman@gmail.com>
  *
@@ -23,7 +23,6 @@
 #include <boost/lexical_cast.hpp>
 
 #include <mysql.h>
-#include "logger.h"
 
 class DBResult;
 using DBResult_ptr = std::shared_ptr<DBResult>;

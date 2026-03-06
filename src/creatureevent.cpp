@@ -1,4 +1,4 @@
-/**
+﻿/**
  * The Forgotten Server - a free and open-source MMORPG server emulator
  * Copyright (C) 2017  Mark Samman <mark.samman@gmail.com>
  *
@@ -22,7 +22,6 @@
 #include "creatureevent.h"
 #include "tools.h"
 #include "player.h"
-#include "logger.h"
 
 CreatureEvents::CreatureEvents() :
 	scriptInterface("CreatureScript Interface")

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * The Forgotten Server - a free and open-source MMORPG server emulator
  * Copyright (C) 2017  Mark Samman <mark.samman@gmail.com>
  *
@@ -24,7 +24,6 @@
 #include "iologindata.h"
 #include "configmanager.h"
 #include "game.h"
-#include "logger.h"
 
 extern ConfigManager g_config;
 extern Game g_game;
@@ -262,7 +261,7 @@ bool IOLoginData::loadPlayer(Player* player, DBResult_ptr result)
 
 	player->soul = result->getNumber<uint16_t>("soul");
 	player->capacity = result->getNumber<uint32_t>("cap") * 100;
-	// FIX 🟡: blessings is stored as TINYINT UNSIGNED in the DB (max 255).
+	// FIX ðŸŸ¡: blessings is stored as TINYINT UNSIGNED in the DB (max 255).
 	// Loading as uint16_t was unnecessarily wide; uint8_t matches the column type.
 	player->blessings = result->getNumber<uint8_t>("blessings");
 
@@ -766,7 +765,7 @@ bool IOLoginData::savePlayer(Player* player)
 	if (!player->isOffline()) {
 		query << "`onlinetime` = `onlinetime` + " << (time(nullptr) - player->lastLoginSaved) << ',';
 	}
-	// FIX 🟡: Cast to uint8_t instead of uint32_t — consistent with the DB column
+	// FIX ðŸŸ¡: Cast to uint8_t instead of uint32_t â€” consistent with the DB column
 	// type (TINYINT UNSIGNED) and the load side above. uint32_t was over-wide.
 	query << "`blessings` = " << static_cast<uint16_t>(player->blessings);
 	query << " WHERE `id` = " << player->getGUID();
@@ -1001,13 +1000,13 @@ void IOLoginData::loadItems(ItemMap& itemMap, DBResult_ptr result)
 		Item* item = Item::CreateItem(type, count);
 		if (item) {
 			if (!item->unserializeAttr(propStream)) {
-				// FIX 🔴: If deserialization fails the item has corrupt/incomplete data.
+				// FIX ðŸ”´: If deserialization fails the item has corrupt/incomplete data.
 				// Inserting it into the map would add a broken item into the player's
 				// inventory, potentially crashing the server or duping attributes.
 				// We release the item and skip it so only valid items are loaded.
 				Logger::error() << "[Warning - IOLoginData::loadItems] Failed to unserialize "
 				          << "item type=" << type << " sid=" << sid
-				          << " pid=" << pid << " — skipping." << std::endl;
+				          << " pid=" << pid << " â€” skipping." << std::endl;
 				delete item;
 			} else {
 				itemMap[sid] = std::make_pair(item, pid);

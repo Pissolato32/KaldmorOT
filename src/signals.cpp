@@ -1,4 +1,4 @@
-/**
+﻿/**
  * The Forgotten Server - a free and open-source MMORPG server emulator
  * Copyright (C) 2017 Mark Samman <mark.samman@gmail.com>
  *
@@ -34,7 +34,6 @@
 #include "globalevent.h"
 #include "monster.h"
 #include "events.h"
-#include "logger.h"
 
 extern Dispatcher g_dispatcher;
 

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * The Forgotten Server - a free and open-source MMORPG server emulator
  * Copyright (C) 2017  Mark Samman <mark.samman@gmail.com>
  *
@@ -21,7 +21,6 @@
 
 #include "tools.h"
 #include "configmanager.h"
-#include "logger.h"
 
 extern ConfigManager g_config;
 
@@ -189,9 +188,9 @@ std::string transformToSHA1(const std::string& input)
 
 void replaceString(std::string& str, const std::string& sought, const std::string& replacement)
 {
-	// FIX 🟡: Replaced O(n²) substring concatenation with in-place str::replace().
+	// FIX ðŸŸ¡: Replaced O(nÂ²) substring concatenation with in-place str::replace().
 	// The old code created 3 temporary strings per iteration and re-assigned the
-	// whole string every time, causing O(n²) work for strings with many occurrences.
+	// whole string every time, causing O(nÂ²) work for strings with many occurrences.
 	if (sought.empty()) {
 		return;
 	}
@@ -206,7 +205,7 @@ void replaceString(std::string& str, const std::string& sought, const std::strin
 
 void trim_right(std::string& source, char t)
 {
-	// FIX 🟡: Guard against npos — if every character matches, find_last_not_of
+	// FIX ðŸŸ¡: Guard against npos â€” if every character matches, find_last_not_of
 	// returns npos and npos+1 wraps to 0, meaning erase(0) cleared the string
 	// silently. Now we explicitly clear when no non-matching char is found.
 	const size_t pos = source.find_last_not_of(t);
@@ -219,7 +218,7 @@ void trim_right(std::string& source, char t)
 
 void trim_left(std::string& source, char t)
 {
-	// FIX 🟡: Guard against npos — if every character matches, find_first_not_of
+	// FIX ðŸŸ¡: Guard against npos â€” if every character matches, find_first_not_of
 	// returns npos and erase(0, npos) would clear the string silently.
 	const size_t pos = source.find_first_not_of(t);
 	if (pos == std::string::npos) {
@@ -231,7 +230,7 @@ void trim_left(std::string& source, char t)
 
 void toLowerCaseString(std::string& source)
 {
-	// FIX 🟡: Cast to unsigned char before passing to tolower; calling tolower()
+	// FIX ðŸŸ¡: Cast to unsigned char before passing to tolower; calling tolower()
 	// with a negative (signed char) value is undefined behavior per C standard.
 	std::transform(source.begin(), source.end(), source.begin(),
 		[](unsigned char c) { return static_cast<char>(std::tolower(c)); });
@@ -245,7 +244,7 @@ std::string asLowerCaseString(std::string source)
 
 std::string asUpperCaseString(std::string source)
 {
-	// FIX 🟡: Cast to unsigned char before toupper — same UB risk as tolower.
+	// FIX ðŸŸ¡: Cast to unsigned char before toupper â€” same UB risk as tolower.
 	std::transform(source.begin(), source.end(), source.begin(),
 		[](unsigned char c) { return static_cast<char>(std::toupper(c)); });
 	return source;

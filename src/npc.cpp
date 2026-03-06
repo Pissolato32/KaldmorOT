@@ -1,4 +1,4 @@
-/**
+﻿/**
  * The Forgotten Server - a free and open-source MMORPG server emulator
  * Copyright (C) 2017  Mark Samman <mark.samman@gmail.com>
  *
@@ -22,7 +22,6 @@
 #include "npc.h"
 #include "game.h"
 #include "pugicast.h"
-#include "logger.h"
 
 extern Game g_game;
 extern LuaEnvironment g_luaEnvironment;

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * The Forgotten Server - a free and open-source MMORPG server emulator
  * Copyright (C) 2017  Mark Samman <mark.samman@gmail.com>
  *
@@ -24,7 +24,6 @@
 #include "scheduler.h"
 #include "configmanager.h"
 #include "ban.h"
-#include "logger.h"
 
 extern ConfigManager g_config;
 Ban g_bans;

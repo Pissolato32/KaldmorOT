@@ -1,4 +1,4 @@
-/**
+﻿/**
  * The Forgotten Server - a free and open-source MMORPG server emulator
  * Copyright (C) 2017  Mark Samman <mark.samman@gmail.com>
  *
@@ -24,7 +24,6 @@
 #include "game.h"
 #include "pugicast.h"
 #include "weapons.h"
-#include "logger.h"
 
 extern Game g_game;
 extern Vocations g_vocations;

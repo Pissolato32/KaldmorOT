@@ -22,7 +22,6 @@
 #include "iomapserialize.h"
 #include "game.h"
 #include "bed.h"
-#include "logger.h"
 
 extern Game g_game;
 

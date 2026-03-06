@@ -1,4 +1,4 @@
-/**
+﻿/**
  * The Forgotten Server - a free and open-source MMORPG server emulator
  * Copyright (C) 2017  Mark Samman <mark.samman@gmail.com>
  *
@@ -23,7 +23,6 @@
 #include "database.h"
 
 #include <errmsg.h>
-#include "logger.h"
 
 extern ConfigManager g_config;
 
@@ -44,7 +43,7 @@ bool Database::connect()
 	}
 
 	// automatic reconnect
-	// FIX 🟠: my_bool was removed in MySQL >= 8.0. Use bool instead.
+	// FIX ðŸŸ : my_bool was removed in MySQL >= 8.0. Use bool instead.
 	bool reconnect = true;
 	mysql_options(handle, MYSQL_OPT_RECONNECT, &reconnect);
 
@@ -126,7 +125,7 @@ DBResult_ptr Database::storeQuery(const std::string& query)
 {
 	databaseLock.lock();
 
-	// FIX 🔴: Replaced goto/label pattern with a bounded retry loop.
+	// FIX ðŸ”´: Replaced goto/label pattern with a bounded retry loop.
 	// The original goto created a potential infinite loop if the DB never recovered.
 	// Now we retry up to MAX_QUERY_RETRIES times for connection-related errors only,
 	// matching the same error-handling logic already used in executeQuery().
@@ -137,27 +136,27 @@ DBResult_ptr Database::storeQuery(const std::string& query)
 			Logger::error() << "[Error - mysql_real_query] Query: " << query << std::endl << "Message: " << mysql_error(handle) << std::endl;
 			auto error = mysql_errno(handle);
 			if (error != CR_SERVER_LOST && error != CR_SERVER_GONE_ERROR && error != CR_CONN_HOST_ERROR && error != 1053/*ER_SERVER_SHUTDOWN*/ && error != CR_CONNECTION_ERROR) {
-				// Non-recoverable error — bail out immediately
+				// Non-recoverable error â€” bail out immediately
 				databaseLock.unlock();
 				return nullptr;
 			}
-			// Recoverable connection error — wait and retry
+			// Recoverable connection error â€” wait and retry
 			std::this_thread::sleep_for(std::chrono::seconds(1));
 			continue;
 		}
 
-		// Query succeeded — retrieve results
+		// Query succeeded â€” retrieve results
 		// We call mysql_store_result every time as described in MySQL manual.
 		MYSQL_RES* res = mysql_store_result(handle);
 		if (res == nullptr) {
 			Logger::error() << "[Error - mysql_store_result] Query: " << query << std::endl << "Message: " << mysql_error(handle) << std::endl;
 			auto error = mysql_errno(handle);
 			if (error != CR_SERVER_LOST && error != CR_SERVER_GONE_ERROR && error != CR_CONN_HOST_ERROR && error != 1053/*ER_SERVER_SHUTDOWN*/ && error != CR_CONNECTION_ERROR) {
-				// Non-recoverable — bail out
+				// Non-recoverable â€” bail out
 				databaseLock.unlock();
 				return nullptr;
 			}
-			// Recoverable — retry the whole query
+			// Recoverable â€” retry the whole query
 			std::this_thread::sleep_for(std::chrono::seconds(1));
 			continue;
 		}
@@ -192,7 +191,7 @@ std::string Database::escapeBlob(const char* s, uint32_t length) const
 	escaped.push_back('\'');
 
 	if (length != 0) {
-		// FIX 🟡: Replaced raw new[]/delete[] with std::vector<char>.
+		// FIX ðŸŸ¡: Replaced raw new[]/delete[] with std::vector<char>.
 		// The original code would leak memory if escaped.append() threw an exception,
 		// since delete[] would never be called. std::vector is exception-safe.
 		std::vector<char> output(maxLength);

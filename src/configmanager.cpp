@@ -1,4 +1,4 @@
-/**
+﻿/**
  * The Forgotten Server - a free and open-source MMORPG server emulator
  * Copyright (C) 2017  Mark Samman <mark.samman@gmail.com>
  *
@@ -23,7 +23,6 @@
 
 #include "configmanager.h"
 #include "game.h"
-#include "logger.h"
 
 #if LUA_VERSION_NUM >= 502
 #undef lua_strlen
@@ -54,7 +53,7 @@ int32_t getGlobalNumber(lua_State* L, const char* identifier, const int32_t defa
 		return defaultValue;
 	}
 
-	// FIX 🔵: lua_tonumber returns lua_Number (double), which silently truncates
+	// FIX ðŸ”µ: lua_tonumber returns lua_Number (double), which silently truncates
 	// large values when assigned to int32_t. lua_tointeger is semantically correct
 	// and avoids the implicit narrowing conversion warning.
 	int32_t val = static_cast<int32_t>(lua_tointeger(L, -1));

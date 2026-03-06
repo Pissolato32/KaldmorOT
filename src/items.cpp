@@ -25,7 +25,6 @@
 #include "weapons.h"
 
 #include "pugicast.h"
-#include "logger.h"
 
 extern MoveEvents* g_moveEvents;
 extern Weapons* g_weapons;

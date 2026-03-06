@@ -1,4 +1,4 @@
-/**
+﻿/**
  * The Forgotten Server - a free and open-source MMORPG server emulator
  * Copyright (C) 2017  Mark Samman <mark.samman@gmail.com>
  *
@@ -34,7 +34,6 @@
 #include "databasemanager.h"
 #include "scheduler.h"
 #include "databasetasks.h"
-#include "logger.h"
 
 DatabaseTasks g_databaseTasks;
 Dispatcher g_dispatcher;

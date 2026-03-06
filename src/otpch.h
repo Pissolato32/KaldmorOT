@@ -43,5 +43,6 @@
 #include <boost/asio.hpp>
 
 #include <pugixml.hpp>
+#include "logger.h"
 
 #endif

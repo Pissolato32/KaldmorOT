@@ -1,4 +1,4 @@
-/**
+﻿/**
  * The Forgotten Server - a free and open-source MMORPG server emulator
  * Copyright (C) 2017  Mark Samman <mark.samman@gmail.com>
  *
@@ -27,7 +27,6 @@
 
 #include "scheduler.h"
 #include "server.h"
-#include "logger.h"
 
 extern ConfigManager g_config;
 
@@ -276,9 +275,9 @@ void Connection::internalSend(const OutputMessage_ptr& msg)
 
 uint32_t Connection::getIP()
 {
-	// FIX 🔴: Lock was commented out, leaving socket access unprotected in
+	// FIX ðŸ”´: Lock was commented out, leaving socket access unprotected in
 	// multi-threaded context. If closeSocket() runs on another thread while
-	// getIP() reads remote_endpoint(), it accesses a closed/invalid socket —
+	// getIP() reads remote_endpoint(), it accesses a closed/invalid socket â€”
 	// undefined behavior and potential crash. Lock must always be held here.
 	std::lock_guard<std::recursive_mutex> lockClass(connectionLock);
 
