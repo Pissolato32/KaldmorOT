@@ -1071,11 +1071,6 @@ void Player::onCreatureAppear(Creature* creature, bool isLogin)
 			}
 		}
 
-		for (Condition* condition : storedConditionList) {
-			addCondition(condition);
-		}
-		storedConditionList.clear();
-
 		BedItem* bed = g_game.getBedBySleeper(guid);
 		if (bed) {
 			bed->wakeUp(this);
