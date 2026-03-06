@@ -36,8 +36,15 @@ class DepotChest final : public Container
 		ReturnValue queryAdd(int32_t index, const Thing& thing, uint32_t count,
 				uint32_t flags, Creature* actor = nullptr) const;
 
-		void postAddNotification(Thing* thing, const Cylinder* oldParent, int32_t index, cylinderlink_t link = LINK_OWNER);
-		void postRemoveNotification(Thing* thing, const Cylinder* newParent, int32_t index, cylinderlink_t link = LINK_OWNER);
+		void postAddNotification(Thing* thing, const Cylinder* oldParent, int32_t index, cylinderlink_t link = LINK_OWNER) override;
+		void postRemoveNotification(Thing* thing, const Cylinder* newParent, int32_t index, cylinderlink_t link = LINK_OWNER) override;
+
+		void updateCount(int32_t diff) {
+			childCount += diff;
+		}
+		uint32_t getChildCount() const {
+			return childCount;
+		}
 
 		//overrides
 		bool canRemove() const {
@@ -50,6 +57,7 @@ class DepotChest final : public Container
 
 	private:
 		uint32_t maxDepotItems;
+		uint32_t childCount = 0;
 };
 
 #endif

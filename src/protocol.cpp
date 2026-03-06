@@ -49,6 +49,7 @@ void Protocol::onRecvMessage(NetworkMessage& msg)
 OutputMessage_ptr Protocol::getOutputBuffer(int32_t size)
 {
 	//dispatcher thread
+	std::lock_guard<std::mutex> lock(outputLock);
 	if (outputBuffer && NetworkMessage::MAX_PROTOCOL_BODY_LENGTH >= outputBuffer->getLength() + size) {
 		return outputBuffer;
 	} else {

@@ -8167,9 +8167,20 @@ int LuaScriptInterface::luaPlayerGetGuildNick(lua_State* L)
 int LuaScriptInterface::luaPlayerSetGuildNick(lua_State* L)
 {
 	// player:setGuildNick(nick)
-	const std::string& nick = getString(L, 2);
+	std::string nick = getString(L, 2);
 	Player* player = getUserdata<Player>(L, 1);
 	if (player) {
+		if (nick.length() > 31) {
+			nick.resize(31);
+		}
+
+		if (!nick.empty()) {
+			static std::set<char> invalidChars = {'\n', '\r', '\t', '(', ')', '[', ']', '{', '}'};
+			nick.erase(std::remove_if(nick.begin(), nick.end(), [](char c) {
+				return invalidChars.count(c) > 0 || static_cast<unsigned char>(c) < 32;
+			}), nick.end());
+		}
+
 		player->setGuildNick(nick);
 		pushBoolean(L, true);
 	} else {

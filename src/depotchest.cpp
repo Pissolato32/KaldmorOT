@@ -49,7 +49,7 @@ ReturnValue DepotChest::queryAdd(int32_t index, const Thing& thing, uint32_t cou
 			}
 		}
 
-		if (getItemHoldingCount() + addCount > maxDepotItems) {
+		if (getChildCount() + addCount > maxDepotItems) {
 			return RETURNVALUE_DEPOTISFULL;
 		}
 	}
@@ -59,6 +59,14 @@ ReturnValue DepotChest::queryAdd(int32_t index, const Thing& thing, uint32_t cou
 
 void DepotChest::postAddNotification(Thing* thing, const Cylinder* oldParent, int32_t index, cylinderlink_t)
 {
+	if (const Item* item = thing->getItem()) {
+		if (const Container* container = item->getContainer()) {
+			updateCount(container->getItemHoldingCount() + 1);
+		} else {
+			updateCount(1);
+		}
+	}
+
 	if (parent != nullptr) {
 		parent->postAddNotification(thing, oldParent, index, LINK_PARENT);
 	}
@@ -66,6 +74,14 @@ void DepotChest::postAddNotification(Thing* thing, const Cylinder* oldParent, in
 
 void DepotChest::postRemoveNotification(Thing* thing, const Cylinder* newParent, int32_t index, cylinderlink_t)
 {
+	if (const Item* item = thing->getItem()) {
+		if (const Container* container = item->getContainer()) {
+			updateCount(-(static_cast<int32_t>(container->getItemHoldingCount()) + 1));
+		} else {
+			updateCount(-1);
+		}
+	}
+
 	if (parent != nullptr) {
 		parent->postRemoveNotification(thing, newParent, index, LINK_PARENT);
 	}

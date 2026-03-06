@@ -21,6 +21,7 @@
 #define FS_PROTOCOL_H_D71405071ACF4137A4B1203899DE80E1
 
 #include "connection.h"
+#include <mutex>
 
 class Protocol : public std::enable_shared_from_this<Protocol>
 {
@@ -90,6 +91,7 @@ class Protocol : public std::enable_shared_from_this<Protocol>
 		friend class Connection;
 
 		OutputMessage_ptr outputBuffer;
+		mutable std::mutex outputLock;
 	private:
 		const ConnectionWeak_ptr connection;
 		uint32_t key[4] = {};

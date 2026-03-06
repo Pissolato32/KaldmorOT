@@ -260,6 +260,7 @@ void Map::moveCreature(Creature& creature, Tile& newTile, bool forceTeleport/* =
 	if (leaf != new_leaf) {
 		leaf->removeCreature(&creature);
 		new_leaf->addCreature(&creature);
+		clearSpectatorCache();
 	}
 
 	//add the creature

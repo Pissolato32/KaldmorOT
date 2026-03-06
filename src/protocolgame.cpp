@@ -692,9 +692,6 @@ void ProtocolGame::disconnectClient(const std::string& message) const
 
 void ProtocolGame::writeToOutputBuffer(const NetworkMessage& msg, bool broadcast /*= true*/)
 {
-//	auto out = getOutputBuffer(msg.getLength());
-//	out->append(msg);
-	
 	if (!broadcast && isLiveCaster()) {
 		//We're casting and we need to send a packet that's not supposed to be broadcast so we need a new messasge.
 		//This shouldn't impact performance by a huge amount as most packets can be broadcast.
@@ -702,6 +699,7 @@ void ProtocolGame::writeToOutputBuffer(const NetworkMessage& msg, bool broadcast
 		out->append(msg);
 		send(std::move(out));
 	} else {
+		std::lock_guard<std::mutex> lock(outputLock);
 		auto out = getOutputBuffer(msg.getLength());
 		if (isLiveCaster()) {
 			out->setBroadcastMsg(true);
