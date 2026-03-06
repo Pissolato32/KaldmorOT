@@ -1000,11 +1000,17 @@ void IOLoginData::loadItems(ItemMap& itemMap, DBResult_ptr result)
 		Item* item = Item::CreateItem(type, count);
 		if (item) {
 			if (!item->unserializeAttr(propStream)) {
-				std::cout << "WARNING: Serialize error in IOLoginData::loadItems" << std::endl;
+				// FIX 🔴: If deserialization fails the item has corrupt/incomplete data.
+				// Inserting it into the map would add a broken item into the player's
+				// inventory, potentially crashing the server or duping attributes.
+				// We release the item and skip it so only valid items are loaded.
+				std::cout << "[Warning - IOLoginData::loadItems] Failed to unserialize "
+				          << "item type=" << type << " sid=" << sid
+				          << " pid=" << pid << " — skipping." << std::endl;
+				delete item;
+			} else {
+				itemMap[sid] = std::make_pair(item, pid);
 			}
-
-			std::pair<Item*, uint32_t> pair(item, pid);
-			itemMap[sid] = pair;
 		}
 	} while (result->next());
 }

@@ -28,6 +28,8 @@
 #include "creatureevent.h"
 #include "databasetasks.h"
 #include "events.h"
+
+#include <fstream>
 #include "game.h"
 #include "globalevent.h"
 #include "iologindata.h"
@@ -3831,6 +3833,10 @@ bool Game::combatChangeHealth(Creature* attacker, Creature* target, CombatDamage
 			}
 			spectatorMessage += '.';
 
+			// Pre-set the default message outside the loop to avoid per-spectator string copies
+			message.type = MESSAGE_STATUS_DEFAULT;
+			message.text = spectatorMessage;
+
 			for (Creature* spectator : spectators) {
 				Player* tmpPlayer = spectator->getPlayer();
 				if (tmpPlayer->getPosition().z != targetPos.z) {
@@ -3838,10 +3844,10 @@ bool Game::combatChangeHealth(Creature* attacker, Creature* target, CombatDamage
 				}
 
 				if (tmpPlayer == attackerPlayer && attackerPlayer != targetPlayer) {
-					message.type = MESSAGE_STATUS_DEFAULT;
 					message.text = ucfirst(target->getNameDescription()) + " loses " + damageString + " due to your attack.";
+					tmpPlayer->sendTextMessage(message);
+					message.text = spectatorMessage; // restore default for next spectator
 				} else if (tmpPlayer == targetPlayer) {
-					message.type = MESSAGE_STATUS_DEFAULT;
 					if (!attacker) {
 						message.text = "You lose " + damageString + '.';
 					} else if (targetPlayer == attackerPlayer) {
@@ -3849,12 +3855,11 @@ bool Game::combatChangeHealth(Creature* attacker, Creature* target, CombatDamage
 					} else {
 						message.text = "You lose " + damageString + " due to an attack by " + attacker->getNameDescription() + '.';
 					}
+					tmpPlayer->sendTextMessage(message);
+					message.text = spectatorMessage; // restore default for next spectator
 				} else {
-					message.type = MESSAGE_STATUS_DEFAULT;
-					// TODO: Avoid copying spectatorMessage everytime we send to a spectator
-					message.text = spectatorMessage;
+					tmpPlayer->sendTextMessage(message);
 				}
-				tmpPlayer->sendTextMessage(message);
 			}
 		}
 	}
@@ -4601,12 +4606,13 @@ void Game::playerDebugAssert(uint32_t playerId, const std::string& assertLine, c
 		return;
 	}
 
-	// TODO: move debug assertions to database
-	FILE* file = fopen("client_assertions.txt", "a");
-	if (file) {
-		fprintf(file, "----- %s - %s (%s) -----\n", formatDate(time(nullptr)).c_str(), player->getName().c_str(), convertIPToString(player->getIP()).c_str());
-		fprintf(file, "%s\n%s\n%s\n%s\n", assertLine.c_str(), date.c_str(), description.c_str(), comment.c_str());
-		fclose(file);
+	static std::mutex assertFileMutex;
+	std::lock_guard<std::mutex> lock(assertFileMutex);
+	std::ofstream file("client_assertions.txt", std::ios::app);
+	if (file.is_open()) {
+		file << "----- " << formatDate(time(nullptr)) << " - " << player->getName()
+		     << " (" << convertIPToString(player->getIP()) << ") -----\n"
+		     << assertLine << '\n' << date << '\n' << description << '\n' << comment << '\n';
 	}
 }
 

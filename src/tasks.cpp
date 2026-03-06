@@ -72,21 +72,21 @@ void Dispatcher::addTask(Task* task, bool push_front /*= false*/)
 {
 	bool do_signal = false;
 
-	taskLock.lock();
+	{
+		std::lock_guard<std::mutex> lockClass(taskLock);
 
-	if (getState() == THREAD_STATE_RUNNING) {
-		do_signal = taskList.empty();
+		if (getState() == THREAD_STATE_RUNNING) {
+			do_signal = taskList.empty();
 
-		if (push_front) {
-			taskList.push_front(task);
+			if (push_front) {
+				taskList.push_front(task);
+			} else {
+				taskList.push_back(task);
+			}
 		} else {
-			taskList.push_back(task);
+			delete task;
 		}
-	} else {
-		delete task;
 	}
-
-	taskLock.unlock();
 
 	// send a signal if the list was empty
 	if (do_signal) {

@@ -20,6 +20,7 @@
 #include "otpch.h"
 
 #include "chat.h"
+#include "player.h"
 #include "pugicast.h"
 
 extern Chat* g_chat;

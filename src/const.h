@@ -241,7 +241,7 @@ enum MessageClasses : uint8_t {
 	MESSAGE_STATUS_DEFAULT = 24, /*White message at the bottom of the game window and in the console*/
 	MESSAGE_INFO_DESCR = 25, /*Green message in game window and in the console*/
 	MESSAGE_STATUS_SMALL = 26, /*White message at the bottom of the game window"*/
-	MESSAGE_STATUS_CONSOLE_BLUE = 27, /*FIXME Blue message in the console*/
+	MESSAGE_STATUS_CONSOLE_BLUE = 27, /*Blue message in the console*/
 };
 
 enum FluidColors_t : uint8_t {

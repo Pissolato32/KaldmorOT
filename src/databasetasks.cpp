@@ -57,12 +57,13 @@ void DatabaseTasks::threadMain()
 void DatabaseTasks::addTask(std::string query, std::function<void(DBResult_ptr, bool)> callback/* = nullptr*/, bool store/* = false*/)
 {
 	bool signal = false;
-	taskLock.lock();
-	if (getState() == THREAD_STATE_RUNNING) {
-		signal = tasks.empty();
-		tasks.emplace_back(std::move(query), std::move(callback), store);
+	{
+		std::lock_guard<std::mutex> lockClass(taskLock);
+		if (getState() == THREAD_STATE_RUNNING) {
+			signal = tasks.empty();
+			tasks.emplace_back(std::move(query), std::move(callback), store);
+		}
 	}
-	taskLock.unlock();
 
 	if (signal) {
 		taskSignal.notify_one();
@@ -88,6 +89,7 @@ void DatabaseTasks::runTask(const DatabaseTask& task)
 
 void DatabaseTasks::flush()
 {
+	// NOTE: caller must hold taskLock
 	while (!tasks.empty()) {
 		runTask(tasks.front());
 		tasks.pop_front();
@@ -96,9 +98,10 @@ void DatabaseTasks::flush()
 
 void DatabaseTasks::shutdown()
 {
-	taskLock.lock();
-	setState(THREAD_STATE_TERMINATED);
-	flush();
-	taskLock.unlock();
+	{
+		std::lock_guard<std::mutex> lockClass(taskLock);
+		setState(THREAD_STATE_TERMINATED);
+		flush();
+	}
 	taskSignal.notify_one();
 }

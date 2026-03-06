@@ -51,6 +51,13 @@ void ProtocolLogin::getCastingStreamsList()
 	// Accessing index [0] on an empty vector is undefined behavior (crash).
 	uint32_t serverIp = serverIPs.empty() ? 0 : serverIPs[0].first;
 	for (uint32_t i = 0; i < serverIPs.size(); i++) {
+		if ((serverIPs[i].first & serverIPs[i].second) == (getConnection()->getIP() & serverIPs[i].second)) {
+			serverIp = serverIPs[i].first;
+			break;
+		}
+	}
+	
+	auto output = OutputMessagePool::getOutputMessage();
 	
 	const std::string& motd = g_config.getString(ConfigManager::MOTD);
 	if (!motd.empty()) {

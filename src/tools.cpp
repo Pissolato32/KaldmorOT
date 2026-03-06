@@ -188,30 +188,52 @@ std::string transformToSHA1(const std::string& input)
 
 void replaceString(std::string& str, const std::string& sought, const std::string& replacement)
 {
+	// FIX 🟡: Replaced O(n²) substring concatenation with in-place str::replace().
+	// The old code created 3 temporary strings per iteration and re-assigned the
+	// whole string every time, causing O(n²) work for strings with many occurrences.
+	if (sought.empty()) {
+		return;
+	}
+	const size_t soughtLen = sought.length();
+	const size_t replaceLen = replacement.length();
 	size_t pos = 0;
-	size_t start = 0;
-	size_t soughtLen = sought.length();
-	size_t replaceLen = replacement.length();
-
-	while ((pos = str.find(sought, start)) != std::string::npos) {
-		str = str.substr(0, pos) + replacement + str.substr(pos + soughtLen);
-		start = pos + replaceLen;
+	while ((pos = str.find(sought, pos)) != std::string::npos) {
+		str.replace(pos, soughtLen, replacement);
+		pos += replaceLen;
 	}
 }
 
 void trim_right(std::string& source, char t)
 {
-	source.erase(source.find_last_not_of(t) + 1);
+	// FIX 🟡: Guard against npos — if every character matches, find_last_not_of
+	// returns npos and npos+1 wraps to 0, meaning erase(0) cleared the string
+	// silently. Now we explicitly clear when no non-matching char is found.
+	const size_t pos = source.find_last_not_of(t);
+	if (pos == std::string::npos) {
+		source.clear();
+	} else {
+		source.erase(pos + 1);
+	}
 }
 
 void trim_left(std::string& source, char t)
 {
-	source.erase(0, source.find_first_not_of(t));
+	// FIX 🟡: Guard against npos — if every character matches, find_first_not_of
+	// returns npos and erase(0, npos) would clear the string silently.
+	const size_t pos = source.find_first_not_of(t);
+	if (pos == std::string::npos) {
+		source.clear();
+	} else {
+		source.erase(0, pos);
+	}
 }
 
 void toLowerCaseString(std::string& source)
 {
-	std::transform(source.begin(), source.end(), source.begin(), tolower);
+	// FIX 🟡: Cast to unsigned char before passing to tolower; calling tolower()
+	// with a negative (signed char) value is undefined behavior per C standard.
+	std::transform(source.begin(), source.end(), source.begin(),
+		[](unsigned char c) { return static_cast<char>(std::tolower(c)); });
 }
 
 std::string asLowerCaseString(std::string source)
@@ -222,7 +244,9 @@ std::string asLowerCaseString(std::string source)
 
 std::string asUpperCaseString(std::string source)
 {
-	std::transform(source.begin(), source.end(), source.begin(), toupper);
+	// FIX 🟡: Cast to unsigned char before toupper — same UB risk as tolower.
+	std::transform(source.begin(), source.end(), source.begin(),
+		[](unsigned char c) { return static_cast<char>(std::toupper(c)); });
 	return source;
 }
 

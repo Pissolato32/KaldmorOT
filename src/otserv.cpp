@@ -125,11 +125,10 @@ void mainLoader(int argc, char* argv[], ServiceManager* services)
 	std::cout << "" << GIT_REPO <<"." << std::endl;
 	std::cout << std::endl;
 
-	// TODO: dirty for now; Use stdarg;
-	if (argc > 1) {
-		std::string param = { argv[1] };
-		if (param == "-c") {
-			g_config.setConfigFileLua(argv[2]);
+	for (int i = 1; i < argc; ++i) {
+		std::string param = argv[i];
+		if (param == "-c" && (i + 1) < argc) {
+			g_config.setConfigFileLua(argv[++i]);
 		}
 	}
 
@@ -282,17 +281,17 @@ void mainLoader(int argc, char* argv[], ServiceManager* services)
 	std::string ip;
 	ip = g_config.getString(ConfigManager::IP);
 
-	// TODO 🔵: gethostbyname() is thread-unsafe and deprecated since POSIX 2001.
-	// In Docker/IPv6 environments it may return unexpected results.
-	// Future fix: replace with getaddrinfo() for thread-safety and IPv6 support.
 	uint32_t resolvedIp = inet_addr(ip.c_str());
 	if (resolvedIp == INADDR_NONE) {
-		struct hostent* he = gethostbyname(ip.c_str());
-		if (he != 0) {
-			resolvedIp = *(uint32_t*)he->h_addr;
+		struct addrinfo hints = {};
+		hints.ai_family = AF_INET;
+		struct addrinfo* res = nullptr;
+		if (getaddrinfo(ip.c_str(), nullptr, &hints, &res) == 0 && res) {
+			resolvedIp = reinterpret_cast<struct sockaddr_in*>(res->ai_addr)->sin_addr.s_addr;
+			freeaddrinfo(res);
 		} else {
-			std::cout << "ERROR: Cannot resolve " << ip << "!" << std::endl;
-			startupErrorMessage("");
+			if (res) { freeaddrinfo(res); }
+			startupErrorMessage("Cannot resolve IP/hostname: '" + ip + "'. Check the 'ip' setting in config.lua.");
 		}
 	}
 
@@ -308,19 +307,18 @@ void mainLoader(int argc, char* argv[], ServiceManager* services)
 	serverIPs.push_back(IpNetMask);
 
 	// Add hostname-resolved IPs (e.g., internal Docker IPs) for LAN clients
-	// TODO 🔵: gethostname() + gethostbyname() are deprecated and thread-unsafe.
-	// Replace with getaddrinfo() when refactoring network initialization.
 	char szHostName[128];
 	if (gethostname(szHostName, 128) == 0) {
-		hostent *he = gethostbyname(szHostName);
-		if (he) {
-			unsigned char** addr = (unsigned char**)he->h_addr_list;
-			while (addr[0] != nullptr) {
-				IpNetMask.first = *(uint32_t*)(*addr);
+		struct addrinfo hints = {};
+		hints.ai_family = AF_INET;
+		struct addrinfo* res = nullptr;
+		if (getaddrinfo(szHostName, nullptr, &hints, &res) == 0) {
+			for (struct addrinfo* p = res; p != nullptr; p = p->ai_next) {
+				IpNetMask.first = reinterpret_cast<struct sockaddr_in*>(p->ai_addr)->sin_addr.s_addr;
 				IpNetMask.second = 0x0000FFFF;
 				serverIPs.push_back(IpNetMask);
-				addr++;
 			}
+			freeaddrinfo(res);
 		}
 	}
 
