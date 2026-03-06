@@ -372,3 +372,6 @@ config.lua
 
 # SFTP for Sublime
 sftp-config.json
+
+# OTClient local directory
+otclient/
