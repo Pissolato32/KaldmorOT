@@ -27,7 +27,10 @@ extern Dispatcher g_dispatcher;
 
 void DatabaseTasks::start()
 {
-	db.connect();
+	if (!db.connect()) {
+		std::cout << "[Error - DatabaseTasks::start] Failed to connect to database task worker." << std::endl;
+		return;
+	}
 	ThreadHolder::start();
 }
 
@@ -72,7 +75,7 @@ void DatabaseTasks::runTask(const DatabaseTask& task)
 	DBResult_ptr result;
 	if (task.store) {
 		result = db.storeQuery(task.query);
-		success = true;
+		success = result != nullptr;
 	} else {
 		result = nullptr;
 		success = db.executeQuery(task.query);

@@ -158,11 +158,12 @@ bool IOLoginData::preloadPlayer(Player* player, const std::string& name)
 	Database& db = Database::getInstance();
 
 	std::ostringstream query;
-	query << "SELECT `id`, `account_id`, `group_id`, `deletion`, (SELECT `type` FROM `accounts` WHERE `accounts`.`id` = `account_id`) AS `account_type`";
+	query << "SELECT `players`.`id`, `players`.`account_id`, `players`.`group_id`, `players`.`deletion`, `accounts`.`type` AS `account_type`";
 	if (!g_config.getBoolean(ConfigManager::FREE_PREMIUM)) {
-		query << ", (SELECT `premdays` FROM `accounts` WHERE `accounts`.`id` = `account_id`) AS `premium_days`";
+		query << ", `accounts`.`premdays` AS `premium_days`";
 	}
-	query << " FROM `players` WHERE `name` = " << db.escapeString(name);
+	query << " FROM `players` INNER JOIN `accounts` ON `accounts`.`id` = `players`.`account_id`"
+		<< " WHERE `players`.`name` = " << db.escapeString(name);
 	DBResult_ptr result = db.storeQuery(query.str());
 	if (!result) {
 		return false;
@@ -192,7 +193,9 @@ bool IOLoginData::preloadPlayer(Player* player, const std::string& name)
 bool IOLoginData::loadPlayerById(Player* player, uint32_t id)
 {
 	std::ostringstream query;
-	query << "SELECT `id`, `name`, `account_id`, `group_id`, `sex`, `vocation`, `experience`, `level`, `maglevel`, `health`, `healthmax`, `blessings`, `mana`, `manamax`, `manaspent`, `soul`, `lookbody`, `lookfeet`, `lookhead`, `looklegs`, `looktype`, `lookaddons`, `posx`, `posy`, `posz`, `cap`, `lastlogin`, `lastlogout`, `lastip`, `conditions`, `skulltime`, `skull`, `town_id`, `balance`, `offlinetraining_time`, `offlinetraining_skill`, `stamina`, `skill_fist`, `skill_fist_tries`, `skill_club`, `skill_club_tries`, `skill_sword`, `skill_sword_tries`, `skill_axe`, `skill_axe_tries`, `skill_dist`, `skill_dist_tries`, `skill_shielding`, `skill_shielding_tries`, `skill_fishing`, `skill_fishing_tries` FROM `players` WHERE `id` = " << id;
+	query << "SELECT `players`.`id`, `players`.`name`, `players`.`account_id`, `players`.`group_id`, `players`.`sex`, `players`.`vocation`, `players`.`experience`, `players`.`level`, `players`.`maglevel`, `players`.`health`, `players`.`healthmax`, `players`.`blessings`, `players`.`mana`, `players`.`manamax`, `players`.`manaspent`, `players`.`soul`, `players`.`lookbody`, `players`.`lookfeet`, `players`.`lookhead`, `players`.`looklegs`, `players`.`looktype`, `players`.`lookaddons`, `players`.`posx`, `players`.`posy`, `players`.`posz`, `players`.`cap`, `players`.`lastlogin`, `players`.`lastlogout`, `players`.`lastip`, `players`.`conditions`, `players`.`skulltime`, `players`.`skull`, `players`.`town_id`, `players`.`balance`, `players`.`offlinetraining_time`, `players`.`offlinetraining_skill`, `players`.`stamina`, `players`.`skill_fist`, `players`.`skill_fist_tries`, `players`.`skill_club`, `players`.`skill_club_tries`, `players`.`skill_sword`, `players`.`skill_sword_tries`, `players`.`skill_axe`, `players`.`skill_axe_tries`, `players`.`skill_dist`, `players`.`skill_dist_tries`, `players`.`skill_shielding`, `players`.`skill_shielding_tries`, `players`.`skill_fishing`, `players`.`skill_fishing_tries`, `accounts`.`type` AS `account_type`, `accounts`.`premdays` AS `premium_days`"
+		<< " FROM `players` INNER JOIN `accounts` ON `accounts`.`id` = `players`.`account_id`"
+		<< " WHERE `players`.`id` = " << id;
 	return loadPlayer(player, Database::getInstance().storeQuery(query.str()));
 }
 
@@ -200,7 +203,9 @@ bool IOLoginData::loadPlayerByName(Player* player, const std::string& name)
 {
 	Database& db = Database::getInstance();
 	std::ostringstream query;
-	query << "SELECT `id`, `name`, `account_id`, `group_id`, `sex`, `vocation`, `experience`, `level`, `maglevel`, `health`, `healthmax`, `blessings`, `mana`, `manamax`, `manaspent`, `soul`, `lookbody`, `lookfeet`, `lookhead`, `looklegs`, `looktype`, `lookaddons`, `posx`, `posy`, `posz`, `cap`, `lastlogin`, `lastlogout`, `lastip`, `conditions`, `skulltime`, `skull`, `town_id`, `balance`, `offlinetraining_time`, `offlinetraining_skill`, `stamina`, `skill_fist`, `skill_fist_tries`, `skill_club`, `skill_club_tries`, `skill_sword`, `skill_sword_tries`, `skill_axe`, `skill_axe_tries`, `skill_dist`, `skill_dist_tries`, `skill_shielding`, `skill_shielding_tries`, `skill_fishing`, `skill_fishing_tries` FROM `players` WHERE `name` = " << db.escapeString(name);
+	query << "SELECT `players`.`id`, `players`.`name`, `players`.`account_id`, `players`.`group_id`, `players`.`sex`, `players`.`vocation`, `players`.`experience`, `players`.`level`, `players`.`maglevel`, `players`.`health`, `players`.`healthmax`, `players`.`blessings`, `players`.`mana`, `players`.`manamax`, `players`.`manaspent`, `players`.`soul`, `players`.`lookbody`, `players`.`lookfeet`, `players`.`lookhead`, `players`.`looklegs`, `players`.`looktype`, `players`.`lookaddons`, `players`.`posx`, `players`.`posy`, `players`.`posz`, `players`.`cap`, `players`.`lastlogin`, `players`.`lastlogout`, `players`.`lastip`, `players`.`conditions`, `players`.`skulltime`, `players`.`skull`, `players`.`town_id`, `players`.`balance`, `players`.`offlinetraining_time`, `players`.`offlinetraining_skill`, `players`.`stamina`, `players`.`skill_fist`, `players`.`skill_fist_tries`, `players`.`skill_club`, `players`.`skill_club_tries`, `players`.`skill_sword`, `players`.`skill_sword_tries`, `players`.`skill_axe`, `players`.`skill_axe_tries`, `players`.`skill_dist`, `players`.`skill_dist_tries`, `players`.`skill_shielding`, `players`.`skill_shielding_tries`, `players`.`skill_fishing`, `players`.`skill_fishing_tries`, `accounts`.`type` AS `account_type`, `accounts`.`premdays` AS `premium_days`"
+		<< " FROM `players` INNER JOIN `accounts` ON `accounts`.`id` = `players`.`account_id`"
+		<< " WHERE `players`.`name` = " << db.escapeString(name);
 	return loadPlayer(player, db.storeQuery(query.str()));
 }
 
@@ -213,18 +218,17 @@ bool IOLoginData::loadPlayer(Player* player, DBResult_ptr result)
 	Database& db = Database::getInstance();
 
 	uint32_t accno = result->getNumber<uint32_t>("account_id");
-	Account acc = loadAccount(accno);
 
 	player->setGUID(result->getNumber<uint32_t>("id"));
 	player->name = result->getString("name");
 	player->accountNumber = accno;
 
-	player->accountType = acc.accountType;
+	player->accountType = static_cast<AccountType_t>(result->getNumber<uint16_t>("account_type"));
 
 	if (g_config.getBoolean(ConfigManager::FREE_PREMIUM)) {
 		player->premiumDays = std::numeric_limits<uint16_t>::max();
 	} else {
-		player->premiumDays = acc.premiumDays;
+		player->premiumDays = result->getNumber<uint16_t>("premium_days");
 	}
 
 	Group* group = g_game.groups.getGroup(result->getNumber<uint16_t>("group_id"));

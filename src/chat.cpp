@@ -20,12 +20,9 @@
 #include "otpch.h"
 
 #include "chat.h"
-#include "game.h"
 #include "pugicast.h"
-#include "scheduler.h"
 
 extern Chat* g_chat;
-extern Game g_game;
 
 bool PrivateChatChannel::isInvited(uint32_t guid) const
 {
@@ -86,14 +83,6 @@ bool ChatChannel::addUser(Player& player)
 
 	if (!executeOnJoinEvent(player)) {
 		return false;
-	}
-
-	// TODO: Move to script when guild channels can be scripted
-	if (id == CHANNEL_GUILD) {
-		Guild* guild = player.getGuild();
-		if (guild && !guild->getMotd().empty()) {
-			g_scheduler.addEvent(createSchedulerTask(150, std::bind(&Game::sendGuildMotd, &g_game, player.getID())));
-		}
 	}
 
 	users[player.getID()] = &player;
@@ -303,6 +292,30 @@ bool Chat::load()
 	for (uint16_t channelId : removedChannels) {
 		normalChannels.erase(channelId);
 	}
+
+	// Propagate updated Lua event IDs to already-open dynamic channels
+	// so that /reload chatchannels takes effect without a server restart.
+	auto propagateEvents = [](ChatChannel& dst, const ChatChannel& src) {
+		dst.onJoinEvent  = src.onJoinEvent;
+		dst.onLeaveEvent = src.onLeaveEvent;
+		dst.onSpeakEvent = src.onSpeakEvent;
+		dst.canJoinEvent = src.canJoinEvent;
+	};
+
+	auto guildTpl = normalChannels.find(CHANNEL_GUILD);
+	if (guildTpl != normalChannels.end()) {
+		for (auto& entry : guildChannels) {
+			propagateEvents(entry.second, guildTpl->second);
+		}
+	}
+
+	auto partyTpl = normalChannels.find(CHANNEL_PARTY);
+	if (partyTpl != normalChannels.end()) {
+		for (auto& entry : partyChannels) {
+			propagateEvents(entry.second, partyTpl->second);
+		}
+	}
+
 	return true;
 }
 
@@ -317,7 +330,17 @@ ChatChannel* Chat::createChannel(const Player& player, uint16_t channelId)
 			Guild* guild = player.getGuild();
 			if (guild) {
 				auto ret = guildChannels.emplace(std::make_pair(guild->getId(), ChatChannel(channelId, guild->getName())));
-				return &ret.first->second;
+				ChatChannel& guildChannel = ret.first->second;
+				// Copy Lua event IDs from the normalChannels template (loaded from chatchannels.xml)
+				auto it = normalChannels.find(CHANNEL_GUILD);
+				if (it != normalChannels.end()) {
+					const ChatChannel& tpl = it->second;
+					guildChannel.onJoinEvent   = tpl.onJoinEvent;
+					guildChannel.onLeaveEvent  = tpl.onLeaveEvent;
+					guildChannel.onSpeakEvent  = tpl.onSpeakEvent;
+					guildChannel.canJoinEvent  = tpl.canJoinEvent;
+				}
+				return &guildChannel;
 			}
 			break;
 		}

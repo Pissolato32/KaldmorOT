@@ -3976,8 +3976,16 @@ int LuaScriptInterface::luaGameGetPlayers(lua_State* L)
 int LuaScriptInterface::luaGameLoadMap(lua_State* L)
 {
 	// Game.loadMap(path)
-	const std::string& path = getString(L, 1);
-	g_dispatcher.addTask(createTask(std::bind(&Game::loadMap, &g_game, path)));
+	std::string path = getString(L, 1);
+	g_dispatcher.addTask(createTask([path]() {
+		try {
+			g_game.loadMap(path);
+		} catch (const OTB::LoadError& e) {
+			std::cout << "[Error - luaGameLoadMap] Failed to load map: " << e.what() << std::endl;
+		} catch (const std::exception& e) {
+			std::cout << "[Error - luaGameLoadMap] Unexpected error while loading map: " << e.what() << std::endl;
+		}
+	}));
 	return 0;
 }
 
