@@ -22,6 +22,7 @@
 
 #include "connection.h"
 #include "signals.h"
+#include "logger.h"
 #include <memory>
 
 class Protocol;
@@ -127,7 +128,7 @@ template <typename ProtocolType>
 bool ServiceManager::add(uint16_t port)
 {
 	if (port == 0) {
-		std::cout << "ERROR: No port provided for service " << ProtocolType::protocol_name() << ". Service disabled." << std::endl;
+		Logger::error() << "ERROR: No port provided for service " << ProtocolType::protocol_name() << ". Service disabled." << std::endl;
 		return false;
 	}
 
@@ -143,7 +144,7 @@ bool ServiceManager::add(uint16_t port)
 		service_port = foundServicePort->second;
 
 		if (service_port->is_single_socket() || ProtocolType::server_sends_first) {
-			std::cout << "ERROR: " << ProtocolType::protocol_name() <<
+			Logger::error() << "ERROR: " << ProtocolType::protocol_name() <<
 					  " and " << service_port->get_protocol_names() <<
 					  " cannot use the same port " << port << '.' << std::endl;
 			return false;

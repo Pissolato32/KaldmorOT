@@ -23,6 +23,7 @@
 #include <boost/lexical_cast.hpp>
 
 #include <mysql.h>
+#include "logger.h"
 
 class DBResult;
 using DBResult_ptr = std::shared_ptr<DBResult>;
@@ -152,7 +153,7 @@ class DBResult
 		{
 			auto it = listNames.find(s);
 			if (it == listNames.end()) {
-				std::cout << "[Error - DBResult::getNumber] Column '" << s << "' doesn't exist in the result set" << std::endl;
+				Logger::error() << "[Error - DBResult::getNumber] Column '" << s << "' doesn't exist in the result set" << std::endl;
 				return static_cast<T>(0);
 			}
 
@@ -176,7 +177,7 @@ class DBResult
 				}
 				catch (boost::bad_lexical_cast &e) {
 					// invalid! discard value.
-					std::cout << "[Error - DBResult::getNumber] Column '" << s << "' has an invalid value set: " << e.what() << std::endl;
+					Logger::error() << "[Error - DBResult::getNumber] Column '" << s << "' has an invalid value set: " << e.what() << std::endl;
 					data = 0;
 				}
 			}
